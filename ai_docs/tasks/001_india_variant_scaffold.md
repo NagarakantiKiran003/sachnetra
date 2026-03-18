@@ -308,9 +308,9 @@ In browser (`npm run dev` already running with `VITE_VARIANT=india` in `.env.loc
 
 ## Completion Log
 
-- [ ] Phase 1 complete — `india.ts` created — [timestamp]
-- [ ] Phase 2 complete — `variant.ts` sachnetra detection added — [timestamp]
-- [ ] Phase 3 complete — `panels.ts` india case wired — [timestamp]
-- [ ] Typecheck: 0 errors — [timestamp]
-- [ ] Browser verified — console shows `current="india"` — [timestamp]
-- [ ] **TASK 001 COMPLETE** ✅
+- [x] Phase 1 complete — `india.ts` created — 2026-03-18T10:02:00
+- [x] Phase 2 complete — `variant.ts` sachnetra detection added — 2026-03-18T10:10:00
+- [x] Phase 3 complete — `panels.ts` india case wired — 2026-03-18T10:20:00
+- [x] Typecheck: 0 errors — 2026-03-18T10:20:00
+- [x] Browser verified — console shows `current="india"` — 2026-03-18T15:37:00
+- [x] **TASK 001 COMPLETE** ✅
