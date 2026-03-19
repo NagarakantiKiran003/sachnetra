@@ -128,6 +128,10 @@ const cacheKey = `summary:v3:india:${headlineHash}:${geoHash}`;
 // Still a string in Redis, just parsed differently on read
 ```
 
+> ⚠️ **Verify before implementing**: The `:india:` segment in the cache key above is aspirational.
+> The current codebase shares summaries across all variants — there is no variant-specific segment in the key.
+> Check the actual cache key format in `api/groq-summarize.js` before implementing Task 005.
+
 **Important**: Bump the cache version from `v3` to `v4` when deploying the new prompt.
 This ensures old single-summary cached values are not returned.
 

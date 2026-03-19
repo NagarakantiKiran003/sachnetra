@@ -89,9 +89,9 @@ See `04_data_sources.md` for the complete feed list.
 
 ### DEFAULT_MAP_LAYERS
 ```typescript
-export const DEFAULT_MAP_LAYERS = {
+export const DEFAULT_MAP_LAYERS: MapLayers = {
   // KEEP — works globally, India covered
-  earthquakes: true,   // India is seismically active — useful signal
+  natural: true,       // Key is `natural` — covers earthquakes. India is seismically active
   protests: true,      // ACLED/GDELT India data — relevant for SachNetra
   outages: false,      // Useful but off by default to reduce noise
 
@@ -105,12 +105,13 @@ export const DEFAULT_MAP_LAYERS = {
   nuclear: false,
   cables: false,
   pipelines: false,
-  vessels: false,
+  ais: false,          // Key is `ais` — covers vessel/ship tracking
   flights: false,
   gpsJamming: false,
   cyberThreats: false,
 
   // India-specific (add when layers are built in Task 006)
+  // Note: `indiaStates` key does NOT exist in MapLayers yet — Task 006 must add it to src/types/index.ts
   // indiaStates: true,
 }
 ```
@@ -118,12 +119,10 @@ export const DEFAULT_MAP_LAYERS = {
 ### DEFAULT_PANELS
 Remove intelligence-heavy panels. Keep news and map.
 ```typescript
-export const DEFAULT_PANELS = [
-  'liveNews',        // Primary — Indian RSS feed
-  'insights',        // AI two-summary brief
-  'map',             // India map view
+export const DEFAULT_PANELS: Record<string, PanelConfig> = {
+  'live-news': { name: 'India News', enabled: true, priority: 1 },
   // Remove: strategicRisk, militaryPosture, cii, theaterPosture
-]
+};
 ```
 
 ---
@@ -360,7 +359,7 @@ Pattern to follow: src/config/variants/tech.ts
 - src/config/variants/finance.ts
 - Any existing .proto files
 - server/gateway.ts
-- Railway relay scripts (scripts/ais-relay.cjs)
+- Railway relay infrastructure logic (scripts/ais-relay.cjs — don't change relay architecture, but allowlist updates are fine per Task 002)
 - Redis configuration
 - Any existing panel TypeScript files not in your task
 

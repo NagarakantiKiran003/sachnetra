@@ -16,57 +16,73 @@ No RSSHub. No Firecrawl. No scrapers. Just URLs.
 ## V1 RSS Feeds — Complete List
 
 These are the feeds that go into `FEEDS` array in `src/config/variants/india.ts`.
-Format matches `FeedConfig` interface in `src/config/feeds.ts`.
+Format matches `Feed` interface in `src/types/index.ts`.
+
+> **How feeds work in the codebase:**
+> - `category` is NOT a field on Feed — it is the key in the `Record<string, Feed[]>` object (e.g., `politics: [...]`, `economy: [...]`)
+> - `tier` is NOT a field on Feed — it is stored in the `SOURCE_TIERS` map in `src/config/feeds.ts` and looked up by source name
+> - Feed fields available: `name`, `url`, `region`, `propagandaRisk` (`'low'|'medium'|'high'`), `stateAffiliated` (country name string), `lang`
 
 ### Tier 1 — Wire Services & Major Broadcasters (highest weight in AI)
+// Record key: `politics`
 
 ```typescript
-{ name: 'NDTV', url: 'https://feeds.feedburner.com/ndtvnews-top-stories', category: 'Politics', tier: 1, region: 'national' },
-{ name: 'The Hindu', url: 'https://www.thehindu.com/news/feeder/default.rss', category: 'Politics', tier: 1, region: 'national' },
-{ name: 'Indian Express', url: 'https://indianexpress.com/feed/', category: 'Politics', tier: 1, region: 'national' },
-{ name: 'ANI', url: 'https://www.aninews.in/rss/india.xml', category: 'Politics', tier: 1, region: 'national' },
+{ name: 'NDTV', url: 'https://feeds.feedburner.com/ndtvnews-top-stories', region: 'national' },
+{ name: 'The Hindu', url: 'https://www.thehindu.com/news/feeder/default.rss', region: 'national' },
+{ name: 'Indian Express', url: 'https://indianexpress.com/feed/', region: 'national' },
+{ name: 'ANI', url: 'https://www.aninews.in/rss/india.xml', region: 'national' },
 // PTI RSS is subscription-only — excluded from V1. Add in V2 if access obtained.
-{ name: 'Times of India', url: 'https://timesofindia.indiatimes.com/rssfeedstopstories.cms', category: 'Politics', tier: 1, region: 'national' },
+{ name: 'Times of India', url: 'https://timesofindia.indiatimes.com/rssfeedstopstories.cms', region: 'national' },
 ```
 
 ### Tier 1 — Disaster & Weather
 
+// Record key: `disaster`
+
 ```typescript
-{ name: 'NDTV Disasters', url: 'https://feeds.feedburner.com/ndtvnews-india-news', category: 'Disaster', tier: 1, region: 'national' },
-{ name: 'The Hindu Science', url: 'https://www.thehindu.com/sci-tech/energy-and-environment/feeder/default.rss', category: 'Disaster', tier: 1, region: 'national' },
+{ name: 'NDTV Disasters', url: 'https://feeds.feedburner.com/ndtvnews-india-news', region: 'national' },
+{ name: 'The Hindu Science', url: 'https://www.thehindu.com/sci-tech/energy-and-environment/feeder/default.rss', region: 'national' },
 ```
 
 ### Tier 2 — Established Outlets
 
 ```typescript
-{ name: 'LiveMint', url: 'https://www.livemint.com/rss/news', category: 'Economy', tier: 2, region: 'national' },
-{ name: 'Economic Times', url: 'https://economictimes.indiatimes.com/rssfeedstopstories.cms', category: 'Economy', tier: 2, region: 'national' },
-{ name: 'Business Standard', url: 'https://www.business-standard.com/rss/home_page_top_stories.rss', category: 'Economy', tier: 2, region: 'national' },
-{ name: 'Hindustan Times', url: 'https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml', category: 'Politics', tier: 2, region: 'national' },
-{ name: 'India Today', url: 'https://www.indiatoday.in/rss/1206578', category: 'Politics', tier: 2, region: 'national' },
+// Record key: `economy`
+{ name: 'LiveMint', url: 'https://www.livemint.com/rss/news', region: 'national' },
+{ name: 'Economic Times', url: 'https://economictimes.indiatimes.com/rssfeedstopstories.cms', region: 'national' },
+{ name: 'Business Standard', url: 'https://www.business-standard.com/rss/home_page_top_stories.rss', region: 'national' },
+// Record key: `politics`
+{ name: 'Hindustan Times', url: 'https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml', region: 'national' },
+{ name: 'India Today', url: 'https://www.indiatoday.in/rss/1206578', region: 'national' },
 ```
 
 ### Tier 2 — Quality Independent Journalism
 
+// Record key: `politics`
+
 ```typescript
-{ name: 'The Wire', url: 'https://thewire.in/feed', category: 'Politics', tier: 2, region: 'national', propagandaRisk: 0.1 },
-{ name: 'Scroll', url: 'https://scroll.in/feed', category: 'Politics', tier: 2, region: 'national' },
-{ name: 'The Print', url: 'https://theprint.in/feed', category: 'Politics', tier: 2, region: 'national' },
+{ name: 'The Wire', url: 'https://thewire.in/feed', region: 'national', propagandaRisk: 'low' },
+{ name: 'Scroll', url: 'https://scroll.in/feed', region: 'national' },
+{ name: 'The Print', url: 'https://theprint.in/feed', region: 'national' },
 ```
 
 ### Tier 2 — Technology & Business
 
+// Record key: `technology`
+
 ```typescript
-{ name: 'YourStory', url: 'https://yourstory.com/feed', category: 'Technology', tier: 2, region: 'national' },
-{ name: 'Inc42', url: 'https://inc42.com/feed/', category: 'Technology', tier: 2, region: 'national' },
+{ name: 'YourStory', url: 'https://yourstory.com/feed', region: 'national' },
+{ name: 'Inc42', url: 'https://inc42.com/feed/', region: 'national' },
 ```
 
 ### Tier 1 — State-Affiliated (tag with stateAffiliated flag)
 
+// Record key: `government`
+
 ```typescript
-{ name: 'DD News', url: 'https://ddnews.gov.in/feed', category: 'Politics', tier: 1, region: 'national', stateAffiliated: true },
+{ name: 'DD News', url: 'https://ddnews.gov.in/feed', region: 'national', stateAffiliated: 'India' },
 // ⚠️ Verify DD News URL before deploying — government RSS feeds are inconsistent
-{ name: 'PIB', url: 'https://pib.gov.in/RssMain.aspx', category: 'Government', tier: 1, region: 'national', stateAffiliated: true },
+{ name: 'PIB', url: 'https://pib.gov.in/RssMain.aspx', region: 'national', stateAffiliated: 'India' },
 // ⚠️ Verify PIB URL before deploying — may require RSSHub connector in V2
 ```
 

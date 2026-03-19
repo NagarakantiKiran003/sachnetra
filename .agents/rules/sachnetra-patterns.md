@@ -56,7 +56,7 @@ Feed objects use `rssProxyUrl()` wrapper (aliased as `rss`):
 { name: 'NDTV', url: rss('https://feeds.feedburner.com/ndtvnews-top-stories') }
 ```
 
-**Note**: The prep doc `04_data_sources.md` shows a `FeedConfig` interface with `tier`, `category`, `region` fields. These are for SachNetra's internal classification — they may extend the base `Feed` type. Study `feeds.ts` Feed type before writing.
+**Note**: Feed entries use only fields from the `Feed` interface in `src/types/index.ts`: `name`, `url`, `region`, `propagandaRisk` (`'low'|'medium'|'high'`), `stateAffiliated` (country name string), `lang`. Category is the Record key (e.g., `politics: [...]`). Tier is stored in the `SOURCE_TIERS` map in `src/config/feeds.ts`, not on the Feed object.
 
 ## CSS Variable Naming Convention
 

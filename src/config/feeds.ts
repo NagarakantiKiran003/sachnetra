@@ -1171,6 +1171,9 @@ const COMMODITY_FEEDS: Record<string, Feed[]> = {
   ],
 };
 
+// India variant feeds are defined in their own variant file
+import { FEEDS as INDIA_FEEDS } from './variants/india';
+
 // Variant-aware exports
 export const FEEDS = SITE_VARIANT === 'tech'
   ? TECH_FEEDS
@@ -1180,7 +1183,9 @@ export const FEEDS = SITE_VARIANT === 'tech'
       ? HAPPY_FEEDS
       : SITE_VARIANT === 'commodity'
         ? COMMODITY_FEEDS
-        : FULL_FEEDS;
+        : SITE_VARIANT === 'india'
+          ? INDIA_FEEDS
+          : FULL_FEEDS;
 
 export const SOURCE_REGION_MAP: Record<string, { labelKey: string; feedKeys: string[] }> = {
   // Full (geopolitical) variant regions

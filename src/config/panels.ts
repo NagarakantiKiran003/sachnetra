@@ -805,7 +805,14 @@ const COMMODITY_MOBILE_MAP_LAYERS: MapLayers = {
 // INDIA VARIANT (SachNetra)
 // ============================================
 const INDIA_PANELS: Record<string, PanelConfig> = {
+  map: { name: 'India Map', enabled: true, priority: 1 },
   'live-news': { name: 'India News', enabled: true, priority: 1 },
+  // RSS article panels — keys must match FEEDS category keys in india.ts
+  politics: { name: 'Politics', enabled: true, priority: 1 },
+  disaster: { name: 'Disaster & Environment', enabled: true, priority: 2 },
+  economy: { name: 'Economy', enabled: true, priority: 2 },
+  technology: { name: 'Technology', enabled: true, priority: 2 },
+  government: { name: 'Government', enabled: true, priority: 2 },
 };
 
 const INDIA_MAP_LAYERS: MapLayers = {

@@ -96,7 +96,8 @@ export const INDIA_REGIONAL_VIEWS = {
 ### KEEP (works globally, India covered, zero new work)
 
 ```
-earthquakes      → USGS M4.5+, India is seismically active
+natural          → MapLayers key is `natural` (covers USGS earthquakes M4.5+)
+                   India is seismically active
                    Himalayan zone, Andaman islands show frequently
                    Default: ON
 
@@ -121,7 +122,7 @@ bases            → Global military bases (no India base database yet)
 nuclear          → Global nuclear facilities
 cables           → Undersea cables (not in V1 scope)
 pipelines        → Oil/gas pipelines (not in V1 scope)
-vessels          → AIS ship tracking (Indian Ocean, not V1)
+ais              → MapLayers key is `ais` (covers AIS ship tracking, Indian Ocean, not V1)
 flights          → Military flight tracking (not V1)
 gpsJamming       → GPS interference (intelligence tool, not SachNetra)
 cyberThreats     → IOC feeds (intelligence tool, not SachNetra)
@@ -137,6 +138,9 @@ indiaStates      → State/UT boundaries of India
                    are from (color by story count, not instability)
                    Data source: geojson India states boundary file
                    Default: ON
+
+⚠️ `indiaStates` does NOT exist in the MapLayers interface yet.
+   Task 006 must add it to src/types/index.ts before using it in india.ts.
 ```
 
 ### ADD IN V2 (research and data required — backlog)
