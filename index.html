@@ -123,10 +123,12 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favico/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favico/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/favico/apple-touch-icon.png" />
+    <!-- SachNetra SVG favicon (india variant — modern browsers prefer SVG over ICO) -->
+    <link rel="icon" type="image/svg+xml" href="/sachnetra-favicon.svg" />
 
 
     <!-- Theme: apply stored preference before first paint to prevent FOUC -->
-    <script>(function(){try{var h=location.hostname;var v;if(h.startsWith('happy.'))v='happy';else if(h.startsWith('tech.'))v='tech';else if(h.startsWith('finance.'))v='finance';if(!v&&(h==='localhost'||h==='127.0.0.1'||'__TAURI_INTERNALS__' in window))v=localStorage.getItem('worldmonitor-variant');if(v)document.documentElement.dataset.variant=v;else document.documentElement.removeAttribute('data-variant');var t=localStorage.getItem('worldmonitor-theme');if(t==='dark'||t==='light'){document.documentElement.dataset.theme=t;}else if(v==='happy'){document.documentElement.dataset.theme='light';}}catch(e){}document.documentElement.classList.add('no-transition');})()</script>
+    <script>(function(){try{var h=location.hostname;var v;if(h.startsWith('happy.'))v='happy';else if(h.startsWith('tech.'))v='tech';else if(h.startsWith('finance.'))v='finance';else if(h.includes('sachnetra'))v='india';if(!v&&(h==='localhost'||h==='127.0.0.1'||'__TAURI_INTERNALS__' in window))v=localStorage.getItem('worldmonitor-variant');if(v)document.documentElement.dataset.variant=v;else document.documentElement.removeAttribute('data-variant');var t=localStorage.getItem('worldmonitor-theme');if(t==='dark'||t==='light'){document.documentElement.dataset.theme=t;}else if(v==='happy'){document.documentElement.dataset.theme='light';}}catch(e){}document.documentElement.classList.add('no-transition');})()</script>
 
     <!-- Critical CSS: inline skeleton visible before JS boots -->
     <style>
@@ -189,6 +191,23 @@
       [data-variant="happy"][data-theme="dark"] .skeleton-panel{background:#222E3E;border-color:#344050}
       [data-variant="happy"][data-theme="dark"] .skeleton-panel-header{border-bottom-color:#283545}
       [data-variant="happy"][data-theme="dark"] .skeleton-line{background:linear-gradient(90deg,rgba(139,175,122,.05) 25%,rgba(139,175,122,.10) 50%,rgba(139,175,122,.05) 75%);background-size:200% 100%;animation:skel-shimmer 1.5s infinite}
+
+      /* ---------- SachNetra splash (india variant) ---------- */
+      .sn-splash{display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:32px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+      .sn-splash::before{content:'';position:absolute;inset:0;background:linear-gradient(160deg,#0d0a1f 0%,#0a0600 100%);z-index:-2}
+      .sn-splash::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 25%,#2a1a50 0%,transparent 60%);z-index:-1}
+      [data-variant="india"] .sn-splash{display:flex}
+      [data-variant="india"] .skeleton-shell{display:none}
+      .sn-splash-brand{display:flex;flex-direction:column;align-items:center;gap:5px}
+      .sn-splash-name{font-size:24px;font-weight:500;margin:0;letter-spacing:0.05em;color:#fff}
+      .sn-splash-sub{font-size:13px;color:#6b5a40;margin:0;letter-spacing:0.06em}
+      .sn-splash-divider{height:1px;width:40px;background:linear-gradient(90deg,#3a2a6b,#4a2a00)}
+      .sn-splash-info{display:flex;flex-direction:column;align-items:center;gap:6px}
+      .sn-splash-date{font-size:13px;color:#6b5a80;margin:0}
+      .sn-splash-greeting{font-size:21px;font-weight:500;color:#e8e0ff;margin:0;text-align:center;line-height:1.35}
+      .sn-splash-bar{width:100px;height:2px;background:#1a1030;border-radius:2px;overflow:hidden;margin-top:4px}
+      .sn-splash-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#7b7bff,#FF9933);animation:sn-loadbar 2s ease-in-out infinite}
+      @keyframes sn-loadbar{0%{width:0%}70%{width:88%}100%{width:100%}}
     </style>
 
     <!-- Preconnect: map tiles + assets -->
@@ -202,6 +221,43 @@
   </head>
   <body>
     <div id="app">
+      <!-- SachNetra splash: shown for india variant, hidden for all others -->
+      <div class="sn-splash" aria-hidden="true">
+        <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="72" height="72" rx="18" fill="url(#snl-bg)"/>
+          <circle cx="36" cy="28" r="13" stroke="url(#snl-eye)" stroke-width="2.5" fill="none"/>
+          <circle cx="36" cy="28" r="5" fill="url(#snl-pupil)"/>
+          <circle cx="36" cy="28" r="2" fill="#0a0808"/>
+          <line x1="36" y1="41" x2="36" y2="51" stroke="url(#snl-stem)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M26 48 Q36 43 46 48" stroke="#7b7bff" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <defs>
+            <linearGradient id="snl-bg" x1="0" y1="0" x2="72" y2="72"><stop offset="0%" stop-color="#1a1040"/><stop offset="100%" stop-color="#2a1200"/></linearGradient>
+            <linearGradient id="snl-eye" x1="23" y1="28" x2="49" y2="28"><stop offset="0%" stop-color="#7b7bff"/><stop offset="100%" stop-color="#FF9933"/></linearGradient>
+            <linearGradient id="snl-pupil" x1="31" y1="23" x2="41" y2="33"><stop offset="0%" stop-color="#9999ff"/><stop offset="100%" stop-color="#FF9933"/></linearGradient>
+            <linearGradient id="snl-stem" x1="36" y1="41" x2="36" y2="51"><stop offset="0%" stop-color="#FF9933"/><stop offset="100%" stop-color="#cc6600"/></linearGradient>
+          </defs>
+        </svg>
+        <div class="sn-splash-brand">
+          <p class="sn-splash-name">SachNetra</p>
+          <p class="sn-splash-sub">सच्चनेत्र</p>
+        </div>
+        <div class="sn-splash-divider"></div>
+        <div class="sn-splash-info">
+          <p class="sn-splash-date" id="sn-date"></p>
+          <p class="sn-splash-greeting" id="sn-greeting">Here's India<br>right now.</p>
+        </div>
+        <div class="sn-splash-bar"><div class="sn-splash-bar-fill"></div></div>
+      </div>
+      <script>
+      (function(){
+        var el=document.getElementById('sn-greeting'),de=document.getElementById('sn-date');
+        if(!el)return;
+        var h=new Date().getHours();
+        var g=h>=5&&h<11?"Here's India<br>this morning.":h>=11&&h<17?"Here's India<br>right now.":h>=17&&h<22?"Here's India<br>this evening.":"Here's India<br>tonight.";
+        el.innerHTML=g;
+        if(de)de.textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+      })()
+      </script>
       <!-- Pre-render skeleton: visible instantly, replaced when JS calls renderLayout() -->
       <div class="skeleton-shell" aria-hidden="true">
         <div class="skeleton-header">

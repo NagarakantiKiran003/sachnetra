@@ -61,6 +61,20 @@
   --font-body: var(--font-body-base);
 }
 
+/* SachNetra brand — india variant only */
+:root {
+  --sn-purple: #7b7bff;
+  --sn-saffron: #FF9933;
+  --sn-dark-bg: #0a0812;
+  --sn-deep-bg: #0d0a1f;
+  --sn-card-bg: #100e24;
+  --sn-border: #1e1c3a;
+  --sn-text-primary: #e8e0ff;
+  --sn-text-secondary: #9090c0;
+  --sn-text-muted: #4a4870;
+  --sn-green: #22c55e;
+}
+
 [dir="rtl"] {
   --font-body: 'Tajawal', 'Geeza Pro', 'SF Arabic', 'Tahoma', var(--font-body-base);
 }
@@ -403,6 +417,20 @@ canvas,
   font-size: 14px;
   letter-spacing: 2px;
   color: var(--accent);
+}
+
+/* SachNetra header branding (india variant) */
+.sn-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  color: #fff;
+}
+.sn-header-icon {
+  border-radius: 7px;
 }
 
 .version {

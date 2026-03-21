@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72" fill="none">
+  <rect width="72" height="72" rx="18" fill="url(#sn-bg)"/>
+  <circle cx="36" cy="28" r="13" stroke="url(#sn-eye)" stroke-width="2.5" fill="none"/>
+  <circle cx="36" cy="28" r="5" fill="url(#sn-pupil)"/>
+  <circle cx="36" cy="28" r="2" fill="#0a0808"/>
+  <line x1="36" y1="41" x2="36" y2="51" stroke="url(#sn-stem)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M26 48 Q36 43 46 48" stroke="#7b7bff" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <defs>
+    <linearGradient id="sn-bg" x1="0" y1="0" x2="72" y2="72">
+      <stop offset="0%" stop-color="#1a1040"/>
+      <stop offset="100%" stop-color="#2a1200"/>
+    </linearGradient>
+    <linearGradient id="sn-eye" x1="23" y1="28" x2="49" y2="28">
+      <stop offset="0%" stop-color="#7b7bff"/>
+      <stop offset="100%" stop-color="#FF9933"/>
+    </linearGradient>
+    <linearGradient id="sn-pupil" x1="31" y1="23" x2="41" y2="33">
+      <stop offset="0%" stop-color="#9999ff"/>
+      <stop offset="100%" stop-color="#FF9933"/>
+    </linearGradient>
+    <linearGradient id="sn-stem" x1="36" y1="41" x2="36" y2="51">
+      <stop offset="0%" stop-color="#FF9933"/>
+      <stop offset="100%" stop-color="#cc6600"/>
+    </linearGradient>
+  </defs>
+</svg>

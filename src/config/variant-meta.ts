@@ -127,4 +127,23 @@ export const VARIANT_META: { full: VariantMeta; [k: string]: VariantMeta } = {
       'Futures market data',
     ],
   },
+  india: {
+    title: 'SachNetra — See India Clearly',
+    description: 'Calm, clear Indian news intelligence. AI-powered summaries from 20+ sources. No panic, no noise — just what happened and what it means.',
+    keywords: 'India news, Indian news dashboard, NDTV, The Hindu, Indian Express, news aggregator, AI news summary, India intelligence',
+    url: 'https://sachnetra.com/',
+    siteName: 'SachNetra',
+    shortName: 'SachNetra',
+    subject: 'Indian News Intelligence and Clarity',
+    classification: 'News Dashboard, India News Aggregator',
+    categories: ['news', 'productivity'],
+    features: [
+      'Indian news aggregation from 20+ sources',
+      'AI-powered two-part summaries',
+      'State-level news filtering',
+      'Time-aware greetings',
+      'Calm, anti-panic design',
+      'WhatsApp sharing',
+    ],
+  },
 };
