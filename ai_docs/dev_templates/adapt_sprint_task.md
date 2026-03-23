@@ -51,10 +51,12 @@ Codebase:     src/config/variants/tech.ts
 Prep docs:    04_data_sources.md
               03_system_design.md (CORS section)
 Codebase:     src/config/variants/tech.ts (FEEDS array pattern)
-              src/config/feeds.ts (FeedConfig interface)
-              api/rss-proxy.js (allowlist pattern)
-              scripts/ais-relay.cjs (relay allowlist pattern)
+              src/config/feeds.ts (Feed interface — NOT "FeedConfig", that doesn't exist)
+              shared/rss-allowed-domains.json (source of truth for allowlist)
+              api/_rss-allowed-domains.js (ESM copy of allowlist for Vercel edge)
 ```
+⚠️ Allowlist architecture: `rss-proxy.js` and `ais-relay.cjs` do NOT contain inline allowlists.
+They import from the files above. Only modify `shared/rss-allowed-domains.json` and `api/_rss-allowed-domains.js`.
 
 ### Task 003 — SachNetra Branding
 ```
@@ -173,6 +175,38 @@ Before writing the task file, answer these by reading the codebase:
 4. Are there any dependencies or imports that need updating?
 
 Write down what you found. This becomes the Context and Pattern sections.
+
+---
+
+## Step 3.5 — Variant Wiring Check
+
+If this task adds data to a variant file (feeds, panels, map layers), verify
+that the data is actually **wired** into the central routing files.
+Defining data in `india.ts` is NOT enough — it must also be imported and
+routed through the variant ternary in the central config files.
+
+Check each row that applies to this task:
+
+| What | Routing file | What to verify |
+|------|-------------|----------------|
+| FEEDS | `src/config/feeds.ts` | Import from variant file + ternary case added |
+| DEFAULT_PANELS | `src/config/panels.ts` | Inline `INDIA_PANELS` definition + ternary case |
+| DEFAULT_MAP_LAYERS | `src/config/panels.ts` | Inline definition + ternary case |
+| Per-feed fallback | `src/app/data-loader.ts` | `isPerFeedFallbackEnabled()` returns `true` for this variant (no server digest) |
+| Domain allowlist | `shared/rss-allowed-domains.json` + `api/_rss-allowed-domains.js` | Both files updated in sync |
+| Variant detection | `src/config/variant.ts` | Hostname → variant mapping exists |
+
+**The import chain to remember:**
+```
+data-loader.ts → FEEDS from @/config → config/index.ts → feeds.ts → variant ternary
+panel-layout.ts → DEFAULT_PANELS from @/config → config/index.ts → panels.ts → variant ternary
+```
+
+**Dead code trap:** `india.ts` may export `DEFAULT_PANELS` but nobody imports it
+for panel creation. `panels.ts` is the actual source of truth. Always trace the
+import chain to confirm data reaches the consumer.
+
+If any wiring is missing, add it to the Implementation phases.
 
 ---
 
@@ -298,6 +332,26 @@ In browser (npm run dev with VITE_VARIANT=india):
 - [ ] [What to look for]
 - [ ] [What to look for]
 
+### Debugging Checklist (if something looks wrong)
+
+Follow this sequence — it catches 90% of variant bugs:
+
+1. **Console: `[App] Variant check:`** — confirms variant name is set
+2. **Console: `[News] Digest missing for "X"`** — if categories match your FEEDS keys, routing works
+3. **Console: `using per-feed fallback` vs `fallback disabled`** — confirms RSS fetching is on
+4. **Network tab: filter `rss-proxy`** — zero requests = fallback disabled. Check 200 vs 403
+5. **Panels visible?** — data arriving but no panels = check `panels.ts` INDIA_PANELS
+6. **Clear localStorage** — `localStorage.clear(); location.reload();`
+
+**Red herrings to ignore:**
+- `[feeds] 103 unique sources / 200 total` — always shows FULL_FEEDS count, not variant
+- LIVE NEWS ticker (Bloomberg/CNN) — separate live TV system, not RSS
+- `india.ts` `DEFAULT_PANELS` export — dead code, not wired to panel-layout
+
+⚠️ **After ANY change to panel definitions in `panels.ts`:**
+Always tell James to run `localStorage.clear()` + hard refresh.
+Panel settings are cached in localStorage and won't update without clearing.
+
 Do not move to the next task until all checks pass.
 
 ---
@@ -376,6 +430,10 @@ Ready for Task [N+1].
 - Mobile-first CSS — 375px base
 - Touch targets minimum 44px
 - Use --sn-* CSS variables, never hardcoded hex
+- Conditional branding via `[data-variant="india"]` CSS selectors, not JS class toggling
+- Hide irrelevant navigation for variant-specific brands — don't adapt, hide
+- SVG favicon preferred over PNG renders (modern browser target)
+- Branding is additive — new files + conditional code, never modify existing variant files
 
 **Forbidden:**
 ```
@@ -388,6 +446,35 @@ npm run dev     ❌  (James runs this himself)
 npm run typecheck   ✅
 Reading files       ✅
 ```
+
+---
+
+## Known Gotchas
+
+These traps have been hit in previous tasks. Check before each task:
+
+1. **403 from Indian RSS feeds** — Some sites block cloud server IPs. Use Google News RSS proxy:
+   `news.google.com/rss/search?q=site:domain.com&hl=en&gl=IN&ceid=IN:en`
+   Always try direct URL first, fall back to proxy only when blocked.
+
+2. **SVG gradient ID conflicts** — Same SVG in multiple DOM locations = broken gradients.
+   Prefix gradient IDs per context (e.g. `sn-`, `snf-`, `snl-`).
+
+3. **Allowlist is 3 files, not 1** — Source of truth: `shared/rss-allowed-domains.json`.
+   ESM copy: `api/_rss-allowed-domains.js`. CJS wrapper (don't touch): `shared/rss-allowed-domains.cjs`.
+   Never edit `rss-proxy.js` or `ais-relay.cjs` for allowlist changes.
+
+4. **`india.ts` exports can be dead code** — `DEFAULT_PANELS` in `india.ts` is metadata only.
+   `panels.ts` is the actual source of truth for panel creation. Always verify the import chain.
+
+5. **Branding lives in layout, not variant config** — Header/footer/favicon: `panel-layout.ts`,
+   `main.css`, `variant-meta.ts`, `index.html`. Not in `india.ts`.
+
+6. **Loading screen content must be inline** — Anything visible before the JS bundle loads must
+   be inline HTML/CSS/JS in `index.html`, not imported from modules.
+
+7. **localStorage caches panel settings** — After changing `panels.ts`, always clear localStorage
+   and hard refresh. Stale cached settings will hide new panels.
 
 ---
 

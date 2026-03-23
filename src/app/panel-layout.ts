@@ -67,6 +67,15 @@ export interface PanelLayoutCallbacks {
   loadSecurityAdvisories?: () => Promise<void>;
 }
 
+/** Returns a human-readable time-of-day label for the news feed time divider. */
+function getTimeDividerLabel(): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 11) return 'Yesterday';
+  if (hour >= 11 && hour < 17) return 'This morning';
+  if (hour >= 17 && hour < 22) return 'This afternoon';
+  return 'Today';
+}
+
 export class PanelLayoutManager implements AppModule {
   private ctx: AppContext;
   private callbacks: PanelLayoutCallbacks;
@@ -326,6 +335,129 @@ export class PanelLayoutManager implements AppModule {
         </div>
         <div class="panels-grid" id="panelsGrid"></div>
         <button class="search-mobile-fab" id="searchMobileFab" aria-label="Search">\u{1F50D}</button>
+        ${SITE_VARIANT === 'india' ? `
+          <!-- SachNetra India mobile feed -->
+          <div class="sn-state-bar" id="snStateBar">
+            <div class="sn-state-bar-collapsed" id="snStateBarCollapsed">
+              <div class="sn-state-bar-left">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1L7.5 4.5H11L8 6.5L9.5 10L6 8L2.5 10L4 6.5L1 4.5H4.5Z" fill="#FF9933"/></svg>
+                <span class="sn-state-name">All India</span>
+              </div>
+              <div class="sn-state-bar-right">
+                <span class="sn-state-change">Change state</span>
+                <svg class="sn-state-arrow" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="#6b6090" stroke-width="1.2" stroke-linecap="round"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="sn-state-grid" id="snStateGrid">
+            <p class="sn-state-grid-label">SELECT YOUR STATE</p>
+            <div class="sn-state-grid-cells">
+              <div class="sn-state-cell sn-state-cell--active" data-state="all">All India<span>National view</span></div>
+              <div class="sn-state-cell" data-state="maharashtra">Maharashtra<span>Mumbai, Pune</span></div>
+              <div class="sn-state-cell" data-state="uttar-pradesh">Uttar Pradesh<span>Lucknow, Noida</span></div>
+              <div class="sn-state-cell" data-state="delhi">Delhi<span>NCR region</span></div>
+              <div class="sn-state-cell" data-state="karnataka">Karnataka<span>Bengaluru</span></div>
+              <div class="sn-state-cell" data-state="tamil-nadu">Tamil Nadu<span>Chennai</span></div>
+              <div class="sn-state-cell" data-state="west-bengal">West Bengal<span>Kolkata</span></div>
+              <div class="sn-state-cell" data-state="gujarat">Gujarat<span>Ahmedabad</span></div>
+              <div class="sn-state-cell" data-state="rajasthan">Rajasthan<span>Jaipur</span></div>
+              <div class="sn-state-cell" data-state="telangana">Telangana<span>Hyderabad</span></div>
+              <div class="sn-state-cell" data-state="andhra-pradesh">Andhra Pradesh<span>Amaravati</span></div>
+              <div class="sn-state-cell" data-state="kerala">Kerala<span>Thiruvananthapuram</span></div>
+              <div class="sn-state-cell" data-state="punjab">Punjab<span>Chandigarh</span></div>
+              <div class="sn-state-cell" data-state="haryana">Haryana<span>Gurugram</span></div>
+              <div class="sn-state-cell" data-state="madhya-pradesh">Madhya Pradesh<span>Bhopal</span></div>
+              <div class="sn-state-cell" data-state="bihar">Bihar<span>Patna</span></div>
+              <div class="sn-state-cell" data-state="odisha">Odisha<span>Bhubaneswar</span></div>
+              <div class="sn-state-cell" data-state="assam">Assam<span>Guwahati</span></div>
+              <div class="sn-state-cell" data-state="jharkhand">Jharkhand<span>Ranchi</span></div>
+              <div class="sn-state-cell" data-state="chhattisgarh">Chhattisgarh<span>Raipur</span></div>
+              <div class="sn-state-cell" data-state="uttarakhand">Uttarakhand<span>Dehradun</span></div>
+              <div class="sn-state-cell" data-state="himachal-pradesh">Himachal Pradesh<span>Shimla</span></div>
+              <div class="sn-state-cell" data-state="goa">Goa<span>Panaji</span></div>
+              <div class="sn-state-cell" data-state="tripura">Tripura<span>Agartala</span></div>
+              <div class="sn-state-cell" data-state="manipur">Manipur<span>Imphal</span></div>
+              <div class="sn-state-cell" data-state="meghalaya">Meghalaya<span>Shillong</span></div>
+              <div class="sn-state-cell" data-state="nagaland">Nagaland<span>Kohima</span></div>
+              <div class="sn-state-cell" data-state="mizoram">Mizoram<span>Aizawl</span></div>
+              <div class="sn-state-cell" data-state="arunachal-pradesh">Arunachal Pradesh<span>Itanagar</span></div>
+              <div class="sn-state-cell" data-state="sikkim">Sikkim<span>Gangtok</span></div>
+              <div class="sn-state-cell" data-state="jammu-kashmir">J &amp; K<span>Srinagar</span></div>
+              <div class="sn-state-cell" data-state="ladakh">Ladakh<span>Leh</span></div>
+            </div>
+
+            <button class="sn-state-done" id="snStateDone">Done</button>
+          </div>
+
+          <div class="sn-feed" id="snFeed">
+            <div class="sn-brief" id="snBrief">
+              <div class="sn-brief-label">
+                <span class="sn-brief-dot"></span>
+                <span>TODAY'S BRIEF</span>
+              </div>
+              <p class="sn-brief-text">Loading today's summary…</p>
+            </div>
+
+            <div class="sn-time-divider" id="snTimeDivider">
+              <div class="sn-divider-line"></div>
+              <span class="sn-divider-text" id="snDividerText"></span>
+              <div class="sn-divider-line"></div>
+            </div>
+
+            <div class="sn-cards" id="snCards">
+              <!-- Story cards injected here by data loader -->
+              <div class="sn-empty">Loading stories…</div>
+            </div>
+          </div>
+
+          <!-- Map placeholder for Map tab -->
+          <div class="sn-map-tab" id="snMapTab" style="display:none">
+            <div class="sn-map-placeholder">Tap to load map</div>
+          </div>
+
+          <!-- Timeline placeholder -->
+          <div class="sn-timeline-tab" id="snTimelineTab" style="display:none">
+            <div class="sn-empty">Timeline coming soon</div>
+          </div>
+
+          <!-- States placeholder -->
+          <div class="sn-states-tab" id="snStatesTab" style="display:none">
+            <div class="sn-empty">State view coming soon</div>
+          </div>
+
+          <!-- Bottom navigation -->
+          <nav class="sn-bottom-nav" id="snBottomNav">
+            <button class="sn-nav-tab sn-nav-tab--active" data-tab="home" aria-label="Home">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="2" y="4" width="16" height="13" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <line x1="2" y1="8" x2="18" y2="8" stroke="currentColor" stroke-width="1"/>
+              </svg>
+              <span>Home</span>
+            </button>
+            <button class="sn-nav-tab" data-tab="timeline" aria-label="Timeline">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M10 4L10 10L14 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              <span>Timeline</span>
+            </button>
+            <button class="sn-nav-tab" data-tab="map" aria-label="Map">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M4 10C4 10 6.5 5 10 5C13.5 5 16 10 16 10C16 10 13.5 15 10 15C6.5 15 4 10 4 10Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span>Map</span>
+            </button>
+            <button class="sn-nav-tab" data-tab="states" aria-label="States">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 3C7.5 3 5.5 5 5.5 7C5.5 11 10 15 10 15C10 15 14.5 11 14.5 7C14.5 5 12.5 3 10 3Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <circle cx="10" cy="7" r="1.5" stroke="currentColor" stroke-width="1"/>
+              </svg>
+              <span>States</span>
+            </button>
+          </nav>
+        ` : ''}
       </div>
       <footer class="site-footer">
         <div class="site-footer-brand">
@@ -358,6 +490,9 @@ export class PanelLayoutManager implements AppModule {
 
     if (this.ctx.isMobile) {
       this.setupMobileMapToggle();
+      if (SITE_VARIANT === 'india') {
+        this.setupMobileIndiaLayout();
+      }
     }
   }
 
@@ -384,6 +519,98 @@ export class PanelLayoutManager implements AppModule {
       updateBtn(btn, isCollapsed);
       localStorage.setItem('mobile-map-collapsed', String(isCollapsed));
       if (!isCollapsed) window.dispatchEvent(new Event('resize'));
+    });
+  }
+
+  private setupMobileIndiaLayout(): void {
+    // --- Time divider label ---
+    const dividerText = document.getElementById('snDividerText');
+    if (dividerText) dividerText.textContent = getTimeDividerLabel();
+
+    // --- Tab switching ---
+    const tabs = document.querySelectorAll<HTMLButtonElement>('.sn-nav-tab');
+    const sections: Record<string, HTMLElement | null> = {
+      home: document.getElementById('snFeed'),
+      timeline: document.getElementById('snTimelineTab'),
+      map: document.getElementById('snMapTab'),
+      states: document.getElementById('snStatesTab'),
+    };
+
+    let mapInitialized = false;
+
+    const activateTab = (tabKey: string) => {
+      // Update tab button styles
+      tabs.forEach((t) => {
+        const isActive = t.dataset.tab === tabKey;
+        t.classList.toggle('sn-nav-tab--active', isActive);
+      });
+
+      // Show/hide sections
+      for (const [key, el] of Object.entries(sections)) {
+        if (!el) continue;
+        el.style.display = key === tabKey ? 'block' : 'none';
+      }
+
+      // Lazy-load map only on first tap
+      // NOTE: Full map integration is Task 6. For now, keep placeholder visible.
+      if (tabKey === 'map' && !mapInitialized) {
+        mapInitialized = true;
+        // When map integration is ready (Task 6), uncomment:
+        // const mapSection = document.getElementById('mapSection');
+        // if (mapSection) {
+        //   mapSection.style.display = '';
+        //   window.dispatchEvent(new Event('resize'));
+        // }
+        // document.querySelector('.sn-map-placeholder')?.remove();
+      }
+    };
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const key = tab.dataset.tab;
+        if (key) activateTab(key);
+      });
+    });
+
+    // --- State selector toggle ---
+    const stateBar = document.getElementById('snStateBar');
+    const stateGrid = document.getElementById('snStateGrid');
+    const stateDone = document.getElementById('snStateDone');
+    const stateArrow = stateBar?.querySelector<SVGElement>('.sn-state-arrow');
+    const stateName = stateBar?.querySelector<HTMLElement>('.sn-state-name');
+
+    const openStateGrid = () => {
+      stateGrid?.classList.add('sn-state-grid--open');
+      stateBar?.classList.add('sn-state-bar--expanded');
+      if (stateArrow) stateArrow.style.transform = 'rotate(180deg)';
+    };
+
+    const closeStateGrid = () => {
+      stateGrid?.classList.remove('sn-state-grid--open');
+      stateBar?.classList.remove('sn-state-bar--expanded');
+      if (stateArrow) stateArrow.style.transform = '';
+    };
+
+    stateBar?.addEventListener('click', () => {
+      const isOpen = stateGrid?.classList.contains('sn-state-grid--open');
+      if (isOpen) closeStateGrid(); else openStateGrid();
+    });
+
+    stateDone?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeStateGrid();
+    });
+
+    // State cell selection
+    const cells = document.querySelectorAll<HTMLElement>('.sn-state-cell');
+    cells.forEach((cell) => {
+      cell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        cells.forEach((c) => c.classList.remove('sn-state-cell--active'));
+        cell.classList.add('sn-state-cell--active');
+        if (stateName) stateName.textContent = cell.dataset.state === 'all' ? 'All India' : cell.firstChild?.textContent?.trim() ?? 'All India';
+        closeStateGrid();
+      });
     });
   }
 

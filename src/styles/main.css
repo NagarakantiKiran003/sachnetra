@@ -18757,3 +18757,945 @@ body.has-breaking-alert .panels-grid {
   70%  { transform: scale(2.5); opacity: 0; }
   100% { transform: scale(2.5); opacity: 0; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SachNetra India — Mobile-only elements: hidden on desktop by default
+   ═══════════════════════════════════════════════════════════════════════════════ */
+[data-variant="india"] .sn-state-bar,
+[data-variant="india"] .sn-state-grid,
+[data-variant="india"] .sn-feed,
+[data-variant="india"] .sn-bottom-nav,
+[data-variant="india"] .sn-map-tab,
+[data-variant="india"] .sn-timeline-tab,
+[data-variant="india"] .sn-states-tab {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SachNetra India — Mobile Layout
+   Phase 1: Foundation (body scroll, hide desktop, mobile header)
+   Scoped to [data-variant="india"] + max-width: 768px
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* --- Body: Allow natural mobile scroll --- */
+  [data-variant="india"] html,
+  [data-variant="india"],
+  [data-variant="india"] body {
+    overflow: auto;
+    overflow-x: hidden;
+  }
+
+  [data-variant="india"] body {
+    background: var(--sn-dark-bg);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  [data-variant="india"] #app {
+    overflow: visible;
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  [data-variant="india"] .main-content {
+    flex: 1 1 auto;
+    overflow: visible;
+    overflow-x: hidden;
+    background: var(--sn-dark-bg);
+    /* Space for fixed bottom nav */
+    padding-bottom: 60px;
+  }
+
+  /* --- Hide desktop-only elements + generic mobile menu (india has its own nav) --- */
+  [data-variant="india"] .panels-grid,
+  [data-variant="india"] .map-section,
+  [data-variant="india"] .site-footer,
+  [data-variant="india"] .variant-switcher,
+  [data-variant="india"] .region-selector,
+  [data-variant="india"] .status-indicator,
+  [data-variant="india"] .header-right,
+  [data-variant="india"] .credit-link,
+  [data-variant="india"] .github-link,
+  [data-variant="india"] .search-btn,
+  [data-variant="india"] .copy-link-btn,
+  [data-variant="india"] .fullscreen-btn,
+  [data-variant="india"] .download-wrapper,
+  [data-variant="india"] .search-mobile-fab,
+  [data-variant="india"] .mobile-settings-btn,
+  [data-variant="india"] .header-left .version,
+  [data-variant="india"] .header-left .logo:not(.sn-logo),
+  [data-variant="india"] .logo-mobile,
+  [data-variant="india"] .mobile-menu-btn,
+  [data-variant="india"] .mobile-menu-title,
+  [data-variant="india"] .map-bottom-grid,
+  [data-variant="india"] .map-collapse-btn,
+  [data-variant="india"] .header-separator,
+  [data-variant="india"] .pro-banner,
+  [data-variant="india"] .hamburger-btn,
+  [data-variant="india"] .mobile-menu,
+  [data-variant="india"] .mobile-menu-overlay,
+  [data-variant="india"] .mobile-search-btn,
+  [data-variant="india"] .region-bottom-sheet,
+  [data-variant="india"] .region-sheet-backdrop,
+  [data-variant="india"] .beta-badge,
+  [data-variant="india"] .layer-toggles {
+    display: none !important;
+  }
+
+  /* --- Mobile header --- */
+  [data-variant="india"] .header {
+    background: linear-gradient(180deg, var(--sn-deep-bg) 0%, var(--sn-dark-bg) 100%);
+    height: auto;
+    padding: 14px 16px 10px;
+    border-bottom: none;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  [data-variant="india"] .header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  [data-variant="india"] .sn-logo {
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: #fff;
+    /* Override existing mobile rule (.logo { display: none }) at line ~11447 */
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* --- Prevent horizontal scroll on all elements --- */
+  [data-variant="india"] * {
+    max-width: 100vw;
+  }
+
+  [data-variant="india"] img,
+  [data-variant="india"] video,
+  [data-variant="india"] canvas,
+  [data-variant="india"] svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* ── Phase 2–3: SachNetra India Components ──────────────────── */
+
+  /* Feed container */
+  [data-variant="india"] .sn-feed {
+    padding: 0;
+    display: block; /* override desktop display:none */
+  }
+
+  /* Re-show mobile-only elements inside media query */
+  [data-variant="india"] .sn-state-bar {
+    display: block;
+  }
+  [data-variant="india"] .sn-bottom-nav {
+    display: flex;
+  }
+
+  /* State bar */
+  [data-variant="india"] .sn-state-bar {
+    background: #13112a;
+    border-radius: 10px;
+    margin: 0 16px 10px;
+    border: 0.5px solid #2a2848;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.2s;
+  }
+
+  [data-variant="india"] .sn-state-bar--expanded {
+    border-color: var(--sn-purple);
+  }
+
+  [data-variant="india"] .sn-state-bar-collapsed {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    min-height: 44px;
+  }
+
+  [data-variant="india"] .sn-state-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  [data-variant="india"] .sn-state-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sn-text-primary);
+  }
+
+  [data-variant="india"] .sn-state-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  [data-variant="india"] .sn-state-change {
+    font-size: 11px;
+    color: var(--sn-text-muted);
+  }
+
+  [data-variant="india"] .sn-state-arrow {
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  /* State grid (hidden by default, shown when --open; overlays feed, not inline) */
+  [data-variant="india"] .sn-state-grid {
+    display: none;
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    top: auto; /* positioned below state bar via JS if needed, otherwise flows naturally */
+    z-index: 30;
+    background: #0f0d22;
+    border-radius: 12px;
+    border: 0.5px solid var(--sn-border);
+    padding: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    max-height: 70vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  [data-variant="india"] .sn-state-grid--open {
+    display: block;
+  }
+
+  [data-variant="india"] .sn-state-grid-label {
+    font-size: 10px;
+    color: var(--sn-text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+  }
+
+  [data-variant="india"] .sn-state-grid-cells {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  [data-variant="india"] .sn-state-cell {
+    background: var(--sn-card-bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 0.5px solid var(--sn-border);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--sn-text-primary);
+    cursor: pointer;
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s;
+  }
+
+  [data-variant="india"] .sn-state-cell span {
+    font-size: 10px;
+    color: var(--sn-text-muted);
+    font-weight: 400;
+  }
+
+  [data-variant="india"] .sn-state-cell--active {
+    background: #1a1040;
+    border-color: var(--sn-purple);
+    color: var(--sn-purple);
+  }
+
+  [data-variant="india"] .sn-state-more {
+    font-size: 11px;
+    color: var(--sn-text-muted);
+    text-align: center;
+    margin: 10px 0 6px;
+  }
+
+  [data-variant="india"] .sn-state-done {
+    width: 100%;
+    background: var(--sn-purple);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Today's Brief */
+  [data-variant="india"] .sn-brief {
+    background: #13112a;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 0 16px 10px;
+    border: 0.5px solid #2a2848;
+    box-shadow: 0 0 12px rgba(123, 123, 255, 0.08);
+  }
+
+  [data-variant="india"] .sn-brief-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sn-purple);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  [data-variant="india"] .sn-brief-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--sn-purple);
+    flex-shrink: 0;
+  }
+
+  [data-variant="india"] .sn-brief-text {
+    font-size: 13px;
+    color: #c8c0e8;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* Time divider */
+  [data-variant="india"] .sn-time-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 16px 10px;
+  }
+
+  [data-variant="india"] .sn-divider-line {
+    height: 1px;
+    flex: 1;
+    background: var(--sn-border);
+  }
+
+  [data-variant="india"] .sn-divider-text {
+    font-size: 11px;
+    color: var(--sn-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  /* Story cards container */
+  [data-variant="india"] .sn-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Story card */
+  [data-variant="india"] .sn-story-card {
+    background: var(--sn-card-bg);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 0 16px 8px;
+    border: 0.5px solid var(--sn-border);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s;
+  }
+
+  [data-variant="india"] .sn-story-card:active {
+    border-color: var(--sn-purple);
+  }
+
+  [data-variant="india"] .sn-story-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  [data-variant="india"] .sn-story-badges {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+
+  [data-variant="india"] .sn-story-badge {
+    font-size: 10px;
+    background: var(--sn-border);
+    color: var(--sn-text-secondary);
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  [data-variant="india"] .sn-story-sources {
+    font-size: 10px;
+    color: var(--sn-text-muted);
+    white-space: nowrap;
+  }
+
+  [data-variant="india"] .sn-story-card-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  [data-variant="india"] .sn-story-card-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  [data-variant="india"] .sn-story-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sn-text-primary);
+    line-height: 1.4;
+    margin: 0 0 4px;
+  }
+
+  [data-variant="india"] .sn-story-summary {
+    font-size: 12px;
+    color: #6b6090;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  [data-variant="india"] .sn-story-thumb {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    background: #1e1830;
+    flex-shrink: 0;
+    object-fit: cover;
+  }
+
+  [data-variant="india"] .sn-story-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 0.5px solid var(--sn-border);
+  }
+
+  [data-variant="india"] .sn-story-meta {
+    font-size: 11px;
+    color: var(--sn-text-muted);
+  }
+
+  [data-variant="india"] .sn-story-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  [data-variant="india"] .sn-story-action {
+    background: none;
+    border: none;
+    color: var(--sn-text-muted);
+    cursor: pointer;
+    padding: 4px;
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Empty / loading state */
+  [data-variant="india"] .sn-empty {
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--sn-text-muted);
+    font-size: 13px;
+  }
+
+  /* Map / Timeline / States tab containers */
+  [data-variant="india"] .sn-map-tab,
+  [data-variant="india"] .sn-timeline-tab,
+  [data-variant="india"] .sn-states-tab {
+    padding: 20px 16px;
+    min-height: 60vh;
+  }
+
+  [data-variant="india"] .sn-map-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    border-radius: 12px;
+    border: 0.5px dashed var(--sn-border);
+    color: var(--sn-text-muted);
+    font-size: 13px;
+  }
+
+  /* Bottom navigation */
+  [data-variant="india"] .sn-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--sn-deep-bg);
+    border-top: 0.5px solid var(--sn-border);
+    padding: 6px 0 max(8px, env(safe-area-inset-bottom));
+    display: flex;
+    justify-content: space-around;
+    z-index: 100;
+  }
+
+  [data-variant="india"] .sn-nav-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 12px;
+    min-height: 44px;
+    min-width: 44px;
+    color: var(--sn-text-muted);
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s;
+  }
+
+  [data-variant="india"] .sn-nav-tab span {
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  [data-variant="india"] .sn-nav-tab.sn-nav-tab--active {
+    color: var(--sn-purple);
+  }
+
+  /* ── Phase 8: Story Detail Screen ───────────────────────────── */
+
+  /* Detail container (replaces feed when a story is opened) */
+  [data-variant="india"] .sn-detail {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--sn-deep-bg);
+  }
+
+  /* Back header */
+  [data-variant="india"] .sn-detail-header {
+    background: linear-gradient(180deg, #0d0a1f, #0a0812);
+    padding: 14px 16px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 0.5px solid var(--sn-border);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  [data-variant="india"] .sn-detail-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  [data-variant="india"] .sn-detail-back {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #1a1830;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    min-height: 44px;
+    min-width: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  [data-variant="india"] .sn-detail-back svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  [data-variant="india"] .sn-detail-back-label {
+    font-size: 14px;
+    color: #9090c0;
+  }
+
+  /* Detail body (scrollable area) */
+  [data-variant="india"] .sn-detail-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 80px; /* space for WhatsApp button */
+  }
+
+  [data-variant="india"] .sn-detail-body::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Metadata row */
+  [data-variant="india"] .sn-detail-meta {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  [data-variant="india"] .sn-detail-badge {
+    font-size: 10px;
+    background: var(--sn-border);
+    color: #9090c0;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  [data-variant="india"] .sn-detail-info {
+    font-size: 10px;
+    color: var(--sn-text-muted);
+  }
+
+  [data-variant="india"] .sn-detail-source-count {
+    font-size: 10px;
+    background: #1a2a1a;
+    color: #22c55e;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  /* Title */
+  [data-variant="india"] .sn-detail-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #e8e0ff;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  /* Separator */
+  [data-variant="india"] .sn-detail-sep {
+    height: 0.5px;
+    background: var(--sn-border);
+  }
+
+  /* "What Happened" card (purple accent) */
+  [data-variant="india"] .sn-detail-what-happened {
+    background: #13112a;
+    border-radius: 12px;
+    padding: 14px;
+    border: 0.5px solid #2a2848;
+  }
+
+  [data-variant="india"] .sn-detail-card-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  [data-variant="india"] .sn-detail-card-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  [data-variant="india"] .sn-detail-what-happened .sn-detail-card-dot {
+    background: var(--sn-purple);
+  }
+
+  [data-variant="india"] .sn-detail-what-happened .sn-detail-card-label span {
+    font-size: 11px;
+    color: var(--sn-purple);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 500;
+  }
+
+  [data-variant="india"] .sn-detail-card-text {
+    font-size: 13px;
+    color: #c8c0e8;
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  /* "What This Means" card (green accent) */
+  [data-variant="india"] .sn-detail-what-means {
+    background: #0f1a0f;
+    border-radius: 12px;
+    padding: 14px;
+    border: 0.5px solid #1a2e1a;
+  }
+
+  [data-variant="india"] .sn-detail-what-means .sn-detail-card-dot {
+    background: #22c55e;
+  }
+
+  [data-variant="india"] .sn-detail-what-means .sn-detail-card-label span {
+    font-size: 11px;
+    color: #22c55e;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 500;
+  }
+
+  [data-variant="india"] .sn-detail-what-means .sn-detail-card-text {
+    color: #a8c8a8;
+  }
+
+  /* Sources section */
+  [data-variant="india"] .sn-detail-sources {
+    background: var(--sn-card-bg);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 0.5px solid var(--sn-border);
+  }
+
+  [data-variant="india"] .sn-detail-sources-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  [data-variant="india"] .sn-detail-sources-label {
+    font-size: 11px;
+    color: #6b6090;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  [data-variant="india"] .sn-detail-sources-count {
+    font-size: 11px;
+    color: var(--sn-text-muted);
+  }
+
+  [data-variant="india"] .sn-detail-source-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  [data-variant="india"] .sn-detail-source-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  [data-variant="india"] .sn-detail-source-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  [data-variant="india"] .sn-detail-source-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--sn-purple);
+    flex-shrink: 0;
+  }
+
+  [data-variant="india"] .sn-detail-source-dot--saffron {
+    background: #FF9933;
+  }
+
+  [data-variant="india"] .sn-detail-source-dot--muted {
+    background: var(--sn-text-muted);
+  }
+
+  [data-variant="india"] .sn-detail-source-name {
+    font-size: 12px;
+    color: #c8c0e8;
+  }
+
+  [data-variant="india"] .sn-detail-tier-badge {
+    font-size: 10px;
+    background: #1a1840;
+    color: #6060a0;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  [data-variant="india"] .sn-detail-tier-badge--t2 {
+    background: #1a2040;
+    color: #6080c0;
+  }
+
+  [data-variant="india"] .sn-detail-source-time {
+    font-size: 11px;
+    color: var(--sn-text-muted);
+  }
+
+  [data-variant="india"] .sn-detail-source-more {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  [data-variant="india"] .sn-detail-source-more-text {
+    font-size: 12px;
+    color: #6b6090;
+  }
+
+  /* Related stories */
+  [data-variant="india"] .sn-detail-related-label {
+    font-size: 11px;
+    color: var(--sn-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 0 0 8px;
+  }
+
+  [data-variant="india"] .sn-detail-related-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  [data-variant="india"] .sn-detail-related-item {
+    background: var(--sn-card-bg);
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 0.5px solid var(--sn-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  [data-variant="india"] .sn-detail-related-item p {
+    font-size: 12px;
+    color: #c8c0e8;
+    margin: 0;
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  /* WhatsApp share button (pinned at bottom) */
+  [data-variant="india"] .sn-detail-share {
+    background: #0d0a1f;
+    border-top: 0.5px solid var(--sn-border);
+    padding: 10px 16px max(14px, env(safe-area-inset-bottom));
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+  }
+
+  [data-variant="india"] .sn-detail-whatsapp {
+    background: linear-gradient(90deg, #25a244, #1da035);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    border: none;
+    width: 100%;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s;
+  }
+
+  [data-variant="india"] .sn-detail-whatsapp:active {
+    opacity: 0.85;
+  }
+
+  [data-variant="india"] .sn-detail-whatsapp svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  [data-variant="india"] .sn-detail-whatsapp span {
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+  }
+
+  /* Skeleton shimmer loading */
+  @keyframes sn-shimmer {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+  }
+
+  [data-variant="india"] .sn-detail-shimmer {
+    background: var(--sn-border);
+    border-radius: 4px;
+    animation: sn-shimmer 1.5s ease-in-out infinite;
+  }
+
+  [data-variant="india"] .sn-detail-shimmer--card {
+    background: #13112a;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  [data-variant="india"] .sn-detail-shimmer--bar {
+    height: 12px;
+    border-radius: 3px;
+    background: var(--sn-border);
+    animation: sn-shimmer 1.5s ease-in-out infinite;
+  }
+
+  [data-variant="india"] .sn-detail-shimmer--title {
+    height: 16px;
+    border-radius: 4px;
+    background: var(--sn-border);
+    animation: sn-shimmer 1.5s ease-in-out infinite;
+  }
+
+  [data-variant="india"] .sn-detail-shimmer--badge {
+    height: 20px;
+    width: 60px;
+    border-radius: 4px;
+    background: var(--sn-border);
+    animation: sn-shimmer 1.5s ease-in-out infinite;
+  }
+
+  [data-variant="india"] .sn-detail-shimmer--btn {
+    height: 44px;
+    border-radius: 10px;
+    background: var(--sn-border);
+    animation: sn-shimmer 1.5s ease-in-out infinite;
+  }
+
+} /* end @media (max-width: 768px) */
