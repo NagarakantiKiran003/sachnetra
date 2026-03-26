@@ -148,6 +148,8 @@ import {
   shouldRefreshDailyBrief,
 } from '@/services/daily-market-brief';
 import { fetchCachedRiskScores } from '@/services/cached-risk-scores';
+import { generateSummary, generateDailyBrief } from '@/services/summarization';
+import { escapeHtml } from '@/utils/sanitize';
 import type { ThreatLevel as ClientThreatLevel } from '@/types';
 import type { NewsItem as ProtoNewsItem, ThreatLevel as ProtoThreatLevel } from '@/generated/client/worldmonitor/news/v1/service_client';
 
@@ -176,6 +178,183 @@ function protoItemToNewsItem(p: ProtoNewsItem): NewsItem {
     ...(p.locationName && { locationName: p.locationName }),
     ...(p.location && { lat: p.location.latitude, lon: p.location.longitude }),
   };
+}
+
+// ── SachNetra India: story detail helpers ──
+
+function shareToWhatsApp(title: string): void {
+  const text = encodeURIComponent(
+    `📰 *${title}*\n\n_Via SachNetra_ — India's clarity app\n🔗 sachnetra.com`
+  );
+  window.open(`https://wa.me/?text=${text}`, '_blank');
+}
+
+/** Open the story detail overlay for a news item. */
+function openStoryDetail(item: NewsItem): void {
+  // Remove any existing detail overlay
+  document.getElementById('snDetailOverlay')?.remove();
+
+  const category = item.threat?.category ?? 'General';
+  const source = item.source;
+  const location = item.locationName ?? '';
+  const pubDate = item.pubDate;
+  const ms = Date.now() - new Date(pubDate).getTime();
+  const mins = Math.floor(ms / 60000);
+  let timeAgo: string;
+  if (mins < 60) timeAgo = `${mins}m ago`;
+  else { const hrs = Math.floor(mins / 60); timeAgo = hrs < 24 ? `${hrs}h ago` : `${Math.floor(hrs / 24)}d ago`; }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'snDetailOverlay';
+  overlay.className = 'sn-detail';
+  overlay.innerHTML = `
+    <div class="sn-detail-header">
+      <div class="sn-detail-header-left">
+        <button class="sn-detail-back" id="snDetailBack" aria-label="Back">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M8 2L4 6L8 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <span class="sn-detail-back-label">Back</span>
+      </div>
+      <button class="sn-detail-back" aria-label="Share" id="snDetailShareHeader" style="background:transparent">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 1L13 3L5 11L1 13L3 9L11 1Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <div class="sn-detail-body">
+      <div class="sn-detail-meta">
+        <span class="sn-detail-badge">${escapeHtml(category)}</span>
+        <span class="sn-detail-info">${timeAgo}${location ? ' · ' + escapeHtml(location) : ''}</span>
+        <span class="sn-detail-source-count">${escapeHtml(source)}</span>
+      </div>
+
+      <p class="sn-detail-title">${escapeHtml(item.title)}</p>
+
+      <div class="sn-detail-sep"></div>
+
+      <!-- AI summary cards — show shimmer while loading -->
+      <div id="snDetailCards">
+        <div class="sn-detail-shimmer--card">
+          <div class="sn-detail-shimmer--badge"></div>
+          <div class="sn-detail-shimmer--bar" style="width:90%"></div>
+          <div class="sn-detail-shimmer--bar" style="width:75%"></div>
+          <div class="sn-detail-shimmer--bar" style="width:60%"></div>
+        </div>
+        <div class="sn-detail-shimmer--card" style="margin-top:10px">
+          <div class="sn-detail-shimmer--badge"></div>
+          <div class="sn-detail-shimmer--bar" style="width:85%"></div>
+          <div class="sn-detail-shimmer--bar" style="width:70%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sn-detail-share">
+      <button class="sn-detail-whatsapp" id="snDetailWhatsApp">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 2.5C12.3 1.3 10.7 0.5 8.9 0.5C5.2 0.5 2.2 3.5 2.2 7.2C2.2 8.4 2.5 9.6 3.1 10.6L2 14L5.5 12.9C6.5 13.4 7.7 13.7 8.9 13.7C12.6 13.7 15.5 10.7 15.5 7C15.5 5.2 14.7 3.6 13.5 2.5Z" fill="white"/></svg>
+        <span>Share on WhatsApp</span>
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // --- Close handlers ---
+  const closeOverlay = () => {
+    overlay.remove();
+    window.removeEventListener('popstate', onPopState);
+  };
+
+  document.getElementById('snDetailBack')?.addEventListener('click', closeOverlay);
+
+  // Android back button / swipe-back via popstate
+  const onPopState = () => closeOverlay();
+  history.pushState(null, '', window.location.href);
+  window.addEventListener('popstate', onPopState);
+
+  // Share buttons
+  document.getElementById('snDetailShareHeader')?.addEventListener('click', () => {
+    shareToWhatsApp(item.title);
+  });
+  document.getElementById('snDetailWhatsApp')?.addEventListener('click', () => {
+    shareToWhatsApp(item.title);
+  });
+
+  // --- Fetch AI summary asynchronously ---
+  const cardsContainer = document.getElementById('snDetailCards');
+  if (!cardsContainer) return;
+
+  generateSummary([item.title, `${item.source}: ${item.title}`], undefined, 'india')
+    .then(result => {
+      // Overlay may have been closed while fetching
+      if (!document.getElementById('snDetailOverlay')) return;
+
+      let summaryText = result?.summary ?? '';
+      let meaningText = result?.meaning ?? '';
+
+      // If meaning is empty, try parsing JSON from summary
+      if (!meaningText && summaryText.includes('"summary"')) {
+        try {
+          const parsed = JSON.parse(summaryText) as Record<string, unknown>;
+          if (typeof parsed.summary === 'string') summaryText = parsed.summary;
+          if (typeof parsed.meaning === 'string') meaningText = parsed.meaning;
+        } catch { /* use raw */ }
+      }
+
+      let html = '';
+
+      if (summaryText) {
+        html += `
+          <div class="sn-detail-what-happened">
+            <div class="sn-detail-card-label">
+              <span class="sn-detail-card-dot"></span>
+              <span>WHAT HAPPENED</span>
+            </div>
+            <p class="sn-detail-card-text">${escapeHtml(summaryText)}</p>
+          </div>
+        `;
+      }
+
+      if (meaningText) {
+        html += `
+          <div class="sn-detail-what-means">
+            <div class="sn-detail-card-label">
+              <span class="sn-detail-card-dot"></span>
+              <span>WHAT THIS MEANS</span>
+            </div>
+            <p class="sn-detail-card-text">${escapeHtml(meaningText)}</p>
+          </div>
+        `;
+      }
+
+      if (!html) {
+        html = `<p class="sn-detail-card-text" style="color:var(--sn-text-muted)">AI summary unavailable for this story.</p>`;
+      }
+
+      // Add source info
+      html += `
+        <div class="sn-detail-sources">
+          <div class="sn-detail-sources-header">
+            <span class="sn-detail-sources-label">Source</span>
+          </div>
+          <div class="sn-detail-source-list">
+            <div class="sn-detail-source-row">
+              <div class="sn-detail-source-left">
+                <span class="sn-detail-source-dot"></span>
+                <span class="sn-detail-source-name">${escapeHtml(source)}</span>
+              </div>
+              <span class="sn-detail-source-time">${timeAgo}</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      cardsContainer.innerHTML = html;
+    })
+    .catch(() => {
+      if (!document.getElementById('snDetailOverlay')) return;
+      cardsContainer.innerHTML = `<p class="sn-detail-card-text" style="color:var(--sn-text-muted)">AI summary unavailable for this story.</p>`;
+    });
 }
 
 const CYBER_LAYER_ENABLED = import.meta.env.VITE_ENABLE_CYBER_LAYER === 'true';
@@ -1073,6 +1252,128 @@ export class DataLoaderManager implements AppModule {
         this.ctx.mapLayers.kindness ? Promise.resolve(this.loadKindnessData()) : Promise.resolve(),
       ]);
     }
+
+    // India variant: populate mobile Today's Brief card + story feed
+    if (SITE_VARIANT === 'india') {
+      this.populateIndiaBrief(collectedNews);
+    }
+  }
+
+  /**
+   * Populate the mobile SachNetra "Today's Brief" card and story feed.
+   * Brief card: 3-sentence plain text overview of the whole day.
+   * Story cards: tappable cards that open story detail overlay.
+   */
+  private async populateIndiaBrief(allNews: NewsItem[]): Promise<void> {
+    const briefEl = document.getElementById('snBriefText');
+    const cardsEl = document.getElementById('snCards');
+    if (!briefEl && !cardsEl) return;
+
+    // --- Populate story cards ---
+    if (cardsEl && allNews.length > 0) {
+      const sorted = [...allNews]
+        .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
+        .slice(0, 20);
+
+      cardsEl.innerHTML = sorted.map((item, idx) => {
+        const ago = this.timeAgo(item.pubDate);
+        const category = item.threat?.category ?? 'General';
+        const location = item.locationName ?? '';
+
+        return `
+          <div class="sn-story-card" data-story-idx="${idx}" role="button" tabindex="0">
+            <div class="sn-story-card-body">
+              <div class="sn-story-content">
+                <div class="sn-story-badges">
+                  <span class="sn-story-badge">${escapeHtml(category)}</span>
+                  <span class="sn-story-sources">${escapeHtml(item.source)}</span>
+                </div>
+                <p class="sn-story-title">${escapeHtml(item.title)}</p>
+              </div>
+              <div class="sn-story-thumb" aria-hidden="true"></div>
+            </div>
+            <div class="sn-story-footer">
+              <span class="sn-story-meta">${ago}${location ? ' · ' + escapeHtml(location) : ''}</span>
+              <div class="sn-story-actions">
+                <button class="sn-story-action" aria-label="View story" data-story-idx="${idx}">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7C2 7 4 3 7 3C10 3 12 7 12 7C12 7 10 11 7 11C4 11 2 7 2 7Z" stroke="currentColor" stroke-width="1" fill="none"/><circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1"/></svg>
+                </button>
+                <button class="sn-story-action sn-story-share" aria-label="Share" data-story-idx="${idx}">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 1L13 3L5 11L1 13L3 9L11 1Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Attach tap handlers
+      cardsEl.querySelectorAll<HTMLElement>('.sn-story-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          // Don't open detail if share button was tapped
+          if ((e.target as HTMLElement).closest('.sn-story-share')) return;
+          const idx = parseInt(card.dataset.storyIdx ?? '0', 10);
+          const item = sorted[idx];
+          if (item) openStoryDetail(item);
+        });
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const idx = parseInt(card.dataset.storyIdx ?? '0', 10);
+            const item = sorted[idx];
+            if (item) openStoryDetail(item);
+          }
+        });
+      });
+
+      // Attach share handlers
+      cardsEl.querySelectorAll<HTMLElement>('.sn-story-share').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const idx = parseInt(btn.dataset.storyIdx ?? '0', 10);
+          const item = sorted[idx];
+          if (item) shareToWhatsApp(item.title);
+        });
+      });
+    }
+
+    // --- Populate Today's Brief via daily overview AI summary ---
+    if (!briefEl) return;
+
+    const headlines = allNews
+      .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
+      .slice(0, 10)
+      .map(item => item.title);
+
+    if (headlines.length === 0) {
+      briefEl.textContent = 'No stories available right now.';
+      return;
+    }
+
+    try {
+      const brief = await generateDailyBrief(headlines);
+      if (brief) {
+        briefEl.textContent = brief;
+      } else {
+        briefEl.textContent = 'Brief unavailable.';
+      }
+    } catch (error) {
+      console.warn('[IndiaBrief] Failed to generate daily brief:', error);
+      briefEl.textContent = 'Brief unavailable.';
+    }
+  }
+
+  private timeAgo(date: string | Date): string {
+    const now = Date.now();
+    const then = new Date(date).getTime();
+    const diffMs = now - then;
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins} minutes ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} hours ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} days ago`;
   }
 
   async loadStockAnalysis(): Promise<void> {

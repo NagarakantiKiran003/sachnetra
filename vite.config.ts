@@ -1,4 +1,12 @@
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
+
+// Load ALL env vars from .env / .env.local into process.env so that
+// server-side handlers (sebuf middleware) can read non-VITE_ keys like
+// GROQ_API_KEY, OPENROUTER_API_KEY, etc.
+const allEnv = loadEnv('development', process.cwd(), '');
+for (const [key, value] of Object.entries(allEnv)) {
+  if (!process.env[key]) process.env[key] = value;
+}
 import { VitePWA } from 'vite-plugin-pwa';
 import { resolve, dirname, extname } from 'path';
 import { mkdir, readFile, writeFile } from 'fs/promises';
@@ -336,7 +344,7 @@ function sebufApiPlugin(): Plugin {
           if (req.method === 'OPTIONS') {
             res.statusCode = 204;
             for (const [key, value] of Object.entries(corsHeaders)) {
-              res.setHeader(key, value);
+              res.setHeader(key, value as string);
             }
             res.end();
             return;
@@ -347,7 +355,7 @@ function sebufApiPlugin(): Plugin {
             res.statusCode = 403;
             res.setHeader('Content-Type', 'application/json');
             for (const [key, value] of Object.entries(corsHeaders)) {
-              res.setHeader(key, value);
+              res.setHeader(key, value as string);
             }
             res.end(JSON.stringify({ error: 'Origin not allowed' }));
             return;
@@ -366,7 +374,7 @@ function sebufApiPlugin(): Plugin {
               res.setHeader('Content-Type', 'application/json');
             }
             for (const [key, value] of Object.entries(corsHeaders)) {
-              res.setHeader(key, value);
+              res.setHeader(key, value as string);
             }
             res.end(JSON.stringify({ error: res.statusCode === 405 ? 'Method not allowed' : 'Not found' }));
             return;
@@ -381,7 +389,7 @@ function sebufApiPlugin(): Plugin {
             res.setHeader(key, value);
           });
           for (const [key, value] of Object.entries(corsHeaders)) {
-            res.setHeader(key, value);
+            res.setHeader(key, value as string);
           }
           res.end(await response.text());
         } catch (err) {

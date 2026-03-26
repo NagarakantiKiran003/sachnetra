@@ -403,3 +403,48 @@ These rules existed for the WorldMonitor mobile experience. Our `display: none` 
 | Story detail | `sn-detail-` | `.sn-detail-what-happened` |
 
 **Future agents**: When adding CSS for a new SachNetra screen/feature, use a specific sub-prefix (e.g., `sn-search-*` for search, `sn-profile-*` for profiles). Don't reuse existing class names from other screens.
+
+---
+
+### Lesson 7 — `display: ''` is not `display: block` — empty string falls through to CSS
+
+**Problem**: After fixing the desktop leakage (Lesson 1), the Timeline, Map, and States tabs showed completely blank dark screens. No placeholder text was visible.
+
+**Root cause**: The tab switching code used:
+```typescript
+el.style.display = key === tabKey ? '' : 'none';
+```
+Setting `display: ''` **removes** the inline style entirely. This is normally fine — the element falls through to its CSS-defined display value. But our CSS had `display: none` (the desktop-hide rule from Lesson 1). So the cascade was:
+1. JS sets `display: ''` → removes inline style
+2. CSS `[data-variant="india"] .sn-timeline-tab { display: none }` kicks in
+3. Element stays hidden
+
+**Solution**: Use an explicit value instead of empty string:
+```typescript
+el.style.display = key === tabKey ? 'block' : 'none';
+```
+
+**Future agents**: Never use `el.style.display = ''` as a "show" action when there are CSS rules that might hide the element. Always use the explicit display type (`'block'`, `'flex'`, `'grid'`). The empty-string trick only works when the CSS default for that element is visible.
+
+---
+
+### Lesson 8 — Don't remove placeholder UI before the real feature is wired
+
+**Problem**: The Map tab showed a blank screen even after fixing Lesson 7. The "Tap to load map" placeholder text was missing.
+
+**Root cause**: The lazy-load code immediately ran on first tap and **removed** the placeholder:
+```typescript
+if (tabKey === 'map' && !mapInitialized) {
+  mapInitialized = true;
+  if (mapPlaceholder) mapPlaceholder.remove();  // ← deleted the only visible content
+}
+```
+It also tried to show `#mapSection`, but that element was hidden by Phase 1's CSS (`.map-section { display: none !important }`). So: placeholder removed + map section hidden = blank screen.
+
+**Solution**: Comment out the lazy-load logic entirely until Task 6 (map integration) wires the actual map. Keep the placeholder visible:
+```typescript
+// When map integration is ready (Task 6), uncomment:
+// document.querySelector('.sn-map-placeholder')?.remove();
+```
+
+**Future agents**: When building a multi-tab layout, never remove placeholder content until the real feature is wired and rendering. Placeholder → blank is worse than placeholder → placeholder. Leave TODO comments for the future task to uncomment the wiring code.

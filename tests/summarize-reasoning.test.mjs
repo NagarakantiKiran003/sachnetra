@@ -252,8 +252,8 @@ describe('Fix 3: hasReasoningPreamble', () => {
 describe('Fix 4: cache version bump', () => {
   const src = readSrc('src/utils/summary-cache-key.ts');
 
-  it('CACHE_VERSION is v5', () => {
-    assert.match(src, /CACHE_VERSION\s*=\s*'v5'/,
-      'CACHE_VERSION must be v5 to invalidate entries from old conflating prompts');
+  it('CACHE_VERSION is v6', () => {
+    assert.match(src, /CACHE_VERSION\s*=\s*'v6'/,
+      'CACHE_VERSION must be v6 to invalidate entries from old single-summary format');
   });
 });

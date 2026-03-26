@@ -217,7 +217,7 @@ export class NewsPanel extends Panel {
     const cacheKey = `panel_summary_v3_${SITE_VARIANT}_${this.panelId}_${currentLang}`;
     const cached = this.getCachedSummary(cacheKey);
     if (cached) {
-      this.showSummary(cached);
+      this.showSummary(cached.summary, cached.meaning);
       return;
     }
 
@@ -238,8 +238,8 @@ export class NewsPanel extends Panel {
         return;
       }
       if (result?.summary) {
-        this.setCachedSummary(cacheKey, result.summary);
-        this.showSummary(result.summary);
+        this.setCachedSummary(cacheKey, result.summary, result.meaning);
+        this.showSummary(result.summary, result.meaning);
       } else {
         this.summaryContainer.innerHTML = `<div class="panel-summary-error">${t('components.newsPanel.summaryError')}</div>`;
         setTimeout(() => this.hideSummary(), 3000);
@@ -294,15 +294,35 @@ export class NewsPanel extends Panel {
     }
   }
 
-  private showSummary(summary: string): void {
+  private showSummary(summary: string, meaning?: string): void {
     if (!this.summaryContainer || !this.element?.isConnected) return;
     this.summaryContainer.style.display = 'block';
-    this.summaryContainer.innerHTML = `
-      <div class="panel-summary-content">
-        <span class="panel-summary-text">${escapeHtml(summary)}</span>
-        <button class="panel-summary-close" title="${t('components.newsPanel.close')}" aria-label="${t('components.newsPanel.close')}">×</button>
-      </div>
-    `;
+
+    // Two-card display for India variant (when meaning is available)
+    if (meaning) {
+      this.summaryContainer.innerHTML = `
+        <div class="panel-summary-content panel-summary-two-card">
+          <div class="panel-summary-cards">
+            <div class="panel-summary-card panel-summary-card--purple">
+              <div class="panel-summary-label"><span class="panel-summary-dot purple"></span>WHAT HAPPENED</div>
+              <div class="panel-summary-body">${escapeHtml(summary)}</div>
+            </div>
+            <div class="panel-summary-card panel-summary-card--green">
+              <div class="panel-summary-label"><span class="panel-summary-dot green"></span>WHAT THIS MEANS</div>
+              <div class="panel-summary-body">${escapeHtml(meaning)}</div>
+            </div>
+          </div>
+          <button class="panel-summary-close" title="${t('components.newsPanel.close')}" aria-label="${t('components.newsPanel.close')}">×</button>
+        </div>
+      `;
+    } else {
+      this.summaryContainer.innerHTML = `
+        <div class="panel-summary-content">
+          <span class="panel-summary-text">${escapeHtml(summary)}</span>
+          <button class="panel-summary-close" title="${t('components.newsPanel.close')}" aria-label="${t('components.newsPanel.close')}">×</button>
+        </div>
+      `;
+    }
     // Close button click is handled via event delegation on summaryContainer (set up in constructor)
   }
 
@@ -326,7 +346,7 @@ export class NewsPanel extends Panel {
     }
   }
 
-  private getCachedSummary(key: string): string | null {
+  private getCachedSummary(key: string): { summary: string; meaning?: string } | null {
     try {
       const cached = localStorage.getItem(key);
       if (!cached) return null;
@@ -334,17 +354,18 @@ export class NewsPanel extends Panel {
       if (!parsed.headlineSignature) { localStorage.removeItem(key); return null; }
       if (parsed.headlineSignature !== this.lastHeadlineSignature) return null;
       if (Date.now() - parsed.timestamp > SUMMARY_CACHE_TTL) { localStorage.removeItem(key); return null; }
-      return parsed.summary;
+      return { summary: parsed.summary, meaning: parsed.meaning };
     } catch {
       return null;
     }
   }
 
-  private setCachedSummary(key: string, summary: string): void {
+  private setCachedSummary(key: string, summary: string, meaning?: string): void {
     try {
       localStorage.setItem(key, JSON.stringify({
         headlineSignature: this.lastHeadlineSignature,
         summary,
+        meaning: meaning || '',
         timestamp: Date.now(),
       }));
     } catch { /* storage full */ }

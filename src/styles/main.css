@@ -1674,6 +1674,71 @@ body.panel-resize-active iframe {
   color: var(--accent-red);
 }
 
+/* SachNetra Two-Card Summary (India variant) */
+.panel-summary-two-card {
+  flex-direction: column;
+  gap: 0;
+}
+
+.panel-summary-two-card .panel-summary-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.panel-summary-two-card .panel-summary-close {
+  align-self: flex-end;
+  margin-bottom: 4px;
+}
+
+.panel-summary-card {
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.panel-summary-card--purple {
+  border-left: 3px solid var(--sn-purple, #7b7bff);
+}
+
+.panel-summary-card--green {
+  border-left: 3px solid var(--sn-green, #22c55e);
+}
+
+.panel-summary-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.panel-summary-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.panel-summary-dot.purple {
+  background: var(--sn-purple, #7b7bff);
+}
+
+.panel-summary-dot.green {
+  background: var(--sn-green, #22c55e);
+}
+
+.panel-summary-body {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
 .panel-info-wrapper {
   position: relative;
   display: inline-flex;
@@ -19111,6 +19176,112 @@ body.has-breaking-alert .panels-grid {
     gap: 0;
   }
 
+  /* Data-loader generated story card links */
+  [data-variant="india"] .sn-card {
+    display: block;
+    background: var(--sn-card-bg);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 0 16px 8px;
+    border: 0.5px solid var(--sn-border);
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  [data-variant="india"] .sn-card:active {
+    border-color: var(--sn-purple);
+    background: rgba(139, 92, 246, 0.06);
+  }
+
+  [data-variant="india"] .sn-card-source {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--sn-purple, #8b5cf6);
+    margin-bottom: 4px;
+  }
+
+  [data-variant="india"] .sn-card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sn-text-primary, #e8e0f0);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  [data-variant="india"] .sn-card-time {
+    font-size: 11px;
+    color: var(--sn-text-muted, #6b6090);
+  }
+
+  /* Two-card brief layout inside #snBrief */
+  [data-variant="india"] .sn-brief .panel-summary-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  [data-variant="india"] .sn-brief .panel-summary-card {
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 0.5px solid var(--sn-border);
+  }
+
+  [data-variant="india"] .sn-brief .panel-summary-card--purple {
+    background: rgba(139, 92, 246, 0.08);
+    border-color: rgba(139, 92, 246, 0.2);
+  }
+
+  [data-variant="india"] .sn-brief .panel-summary-card--green {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.2);
+  }
+
+  [data-variant="india"] .sn-brief .panel-summary-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  [data-variant="india"] .sn-brief .panel-summary-card--purple .panel-summary-label {
+    color: #a78bfa;
+  }
+
+  [data-variant="india"] .sn-brief .panel-summary-card--green .panel-summary-label {
+    color: #34d399;
+  }
+
+  [data-variant="india"] .sn-brief .panel-summary-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  [data-variant="india"] .sn-brief .panel-summary-dot.purple {
+    background: #8b5cf6;
+  }
+
+  [data-variant="india"] .sn-brief .panel-summary-dot.green {
+    background: #10b981;
+  }
+
+  [data-variant="india"] .sn-brief .panel-summary-body {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--sn-text-primary, #e8e0f0);
+  }
+
   /* Story card */
   [data-variant="india"] .sn-story-card {
     background: var(--sn-card-bg);
@@ -19294,12 +19465,18 @@ body.has-breaking-alert .panels-grid {
 
   /* ── Phase 8: Story Detail Screen ───────────────────────────── */
 
-  /* Detail container (replaces feed when a story is opened) */
+  /* Detail container (fixed full-screen overlay when a story is opened) */
   [data-variant="india"] .sn-detail {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 200;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
     background: var(--sn-deep-bg);
+    overflow: hidden;
   }
 
   /* Back header */

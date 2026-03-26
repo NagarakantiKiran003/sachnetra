@@ -396,7 +396,7 @@ export class PanelLayoutManager implements AppModule {
                 <span class="sn-brief-dot"></span>
                 <span>TODAY'S BRIEF</span>
               </div>
-              <p class="sn-brief-text">Loading today's summary…</p>
+              <p class="sn-brief-text" id="snBriefText">Loading today's summary…</p>
             </div>
 
             <div class="sn-time-divider" id="snTimeDivider">

@@ -26,7 +26,6 @@ export { hashString };
 // Headline deduplication (used by SummarizeArticle)
 // ========================================================================
 
-// @ts-expect-error -- plain JS module, no .d.mts needed for this pure function
 export { deduplicateHeadlines } from './dedup.mjs';
 
 // ========================================================================
@@ -41,13 +40,23 @@ export function buildArticlePrompts(
   const headlineText = uniqueHeadlines.map((h, i) => `${i + 1}. ${h}`).join('\n');
   const intelSection = opts.geoContext ? `\n\n${opts.geoContext}` : '';
   const isTechVariant = opts.variant === 'tech';
+  const isIndiaVariant = opts.variant === 'india';
   const dateContext = `Current date: ${new Date().toISOString().split('T')[0]}.${isTechVariant ? '' : ' Provide geopolitical context appropriate for the current date.'}`;
   const langInstruction = opts.lang && opts.lang !== 'en' ? `\nIMPORTANT: Output the summary in ${opts.lang.toUpperCase()} language.` : '';
 
   let systemPrompt: string;
-  let userPrompt: string;
+  let userPrompt = '';
 
-  if (opts.mode === 'brief') {
+  if (opts.mode === 'daily-brief') {
+    // SachNetra daily overview: 3 calm sentences summarising the whole day
+    systemPrompt = `You are SachNetra's morning brief writer for urban Indians.
+Summarize today's top news in exactly 3 calm sentences.
+Write in plain English. No panic. No hype. No bullet points.
+Cover the most important stories from the headlines below.
+Start with the most significant story.
+Respond with ONLY the 3 sentences. Nothing else.`;
+    userPrompt = `Here are today's top headlines:\n\n${headlineText}`;
+  } else if (opts.mode === 'brief') {
     if (isTechVariant) {
       systemPrompt = `${dateContext}
 
@@ -60,6 +69,38 @@ Rules:
 - IGNORE political news, trade policy, tariffs, government actions unless directly about tech regulation
 - Lead with the company/product/technology name
 - No bullet points, no meta-commentary, no elaboration beyond the core facts${langInstruction}`;
+    } else if (isIndiaVariant) {
+      // SachNetra two-summary prompt — returns JSON with summary + meaning
+      systemPrompt = `You are SachNetra's news summarizer.
+You help urban Indians understand what's happening without panic or confusion.
+
+Your tone is:
+- Calm and factual (never alarming, never sensational)
+- Plain language (write like you're explaining to a friend, not a journalist)
+- Specific (mention actual places, actual numbers if available)
+- Neutral (no political bias, no editorial opinion)
+
+You must respond ONLY with a valid JSON object. No preamble, no explanation, no markdown.`;
+      userPrompt = `Here are news headlines about the same story from multiple sources:
+
+${headlineText}
+
+Write two summaries as a JSON object:
+
+{
+  "summary": "2-3 sentences. What happened, where, when, key facts. Plain language. No jargon. No alarm words.",
+  "meaning": "1-2 sentences. What does this mean for an ordinary Indian person? Is there anything they should do or know? If nothing actionable, explain why this matters simply."
+}
+
+Rules:
+- summary: factual only, no opinions, no predictions
+- meaning: practical and calm, not scary, not dismissive
+- Both in simple English that a 16-year-old can understand
+- If the story is political, remain completely neutral in both fields
+- If the story is a disaster, mention relief measures if reported
+- Do not start either field with "This" or "The"
+- Respond ONLY with the JSON object, nothing else
+`;
     } else {
       systemPrompt = `${dateContext}
 
@@ -74,7 +115,9 @@ Rules:
 - If intelligence context is provided, use it only if it relates to your chosen headline
 - No bullet points, no meta-commentary, no elaboration beyond the core facts${langInstruction}`;
     }
-    userPrompt = `Each headline below is a separate story. Pick the most important ONE and summarize only that story:\n${headlineText}${intelSection}`;
+    if (!isIndiaVariant) {
+      userPrompt = `Each headline below is a separate story. Pick the most important ONE and summarize only that story:\n${headlineText}${intelSection}`;
+    }
   } else if (opts.mode === 'analysis') {
     if (isTechVariant) {
       systemPrompt = `${dateContext}
@@ -120,6 +163,43 @@ Rules:
   }
 
   return { systemPrompt, userPrompt };
+}
+
+// ========================================================================
+// SachNetra two-summary JSON parser
+// ========================================================================
+
+export interface TwoSummaryResult {
+  summary: string;
+  meaning: string;
+}
+
+/** Parse LLM response expecting { summary, meaning } JSON. Falls back to raw text. */
+export function parseTwoSummaryResponse(rawResponse: string): TwoSummaryResult {
+  try {
+    // Strip markdown code fences if present (LLMs sometimes wrap JSON despite instructions)
+    const cleaned = rawResponse
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
+
+    const parsed = JSON.parse(cleaned) as Record<string, unknown>;
+
+    if (typeof parsed.summary !== 'string' || typeof parsed.meaning !== 'string') {
+      throw new Error('Invalid response structure');
+    }
+
+    return {
+      summary: parsed.summary.trim(),
+      meaning: parsed.meaning.trim(),
+    };
+  } catch {
+    // Fallback: if JSON parsing fails, use raw as summary (should rarely happen with temperature 0)
+    return {
+      summary: rawResponse.trim(),
+      meaning: '',
+    };
+  }
 }
 
 // ========================================================================

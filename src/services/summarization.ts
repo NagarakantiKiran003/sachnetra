@@ -22,6 +22,7 @@ export type SummarizationProvider = 'ollama' | 'groq' | 'openrouter' | 'browser'
 
 export interface SummarizationResult {
   summary: string;
+  meaning?: string;
   provider: SummarizationProvider;
   model: string;
   cached: boolean;
@@ -94,8 +95,43 @@ async function tryApiProvider(
 
     const cached = resp.status === 'SUMMARIZE_STATUS_CACHED';
     const resultProvider = cached ? 'cache' : providerDef.provider;
+
+    // India variant brief mode returns JSON-encoded { summary, meaning }.
+    // Try to extract both fields; fall back to raw string if parsing fails.
+    let finalSummary = summary;
+    let meaning: string | undefined;
+    try {
+      const parsed = JSON.parse(summary) as Record<string, unknown>;
+      if (typeof parsed.summary === 'string' && typeof parsed.meaning === 'string') {
+        finalSummary = parsed.summary;
+        meaning = parsed.meaning || undefined;
+      }
+    } catch {
+      // JSON.parse failed — LLM may have returned concatenated objects or extra text.
+      // Try to extract the first { ... } JSON block via brace matching.
+      const firstBrace = summary.indexOf('{');
+      if (firstBrace !== -1) {
+        let depth = 0;
+        let end = -1;
+        for (let i = firstBrace; i < summary.length; i++) {
+          if (summary[i] === '{') depth++;
+          else if (summary[i] === '}') { depth--; if (depth === 0) { end = i; break; } }
+        }
+        if (end > firstBrace) {
+          try {
+            const extracted = JSON.parse(summary.slice(firstBrace, end + 1)) as Record<string, unknown>;
+            if (typeof extracted.summary === 'string' && typeof extracted.meaning === 'string') {
+              finalSummary = extracted.summary;
+              meaning = extracted.meaning || undefined;
+            }
+          } catch { /* truly unparseable — use raw string */ }
+        }
+      }
+    }
+
     return {
-      summary,
+      summary: finalSummary,
+      meaning,
       provider: resultProvider as SummarizationProvider,
       model: resp.model || providerDef.provider,
       cached,
@@ -129,6 +165,7 @@ async function tryBrowserT5(headlines: string[], modelId?: string): Promise<Summ
 
     return {
       summary,
+      meaning: '',
       provider: 'browser',
       model: modelId || 't5-small',
       cached: false,
@@ -209,7 +246,17 @@ async function generateSummaryInternal(
       const cacheKey = buildSummaryCacheKey(headlines, 'brief', geoContext, SITE_VARIANT, lang);
       const cached = await newsClient.getSummarizeArticleCache({ cacheKey });
       if (cached.summary) {
-        return { summary: cached.summary, provider: 'cache', model: cached.model || '', cached: true };
+        // Cached summary may be a raw JSON string from India variant — try to parse
+        let cachedSummary = cached.summary;
+        let cachedMeaning: string | undefined;
+        try {
+          const parsed = JSON.parse(cached.summary) as Record<string, unknown>;
+          if (typeof parsed.summary === 'string') {
+            cachedSummary = parsed.summary;
+            if (typeof parsed.meaning === 'string') cachedMeaning = parsed.meaning || undefined;
+          }
+        } catch { /* not JSON — use raw string */ }
+        return { summary: cachedSummary, meaning: cachedMeaning, provider: 'cache', model: cached.model || '', cached: true };
       }
     } catch { /* cache lookup failed — proceed to provider chain */ }
   }
@@ -281,6 +328,42 @@ async function generateSummaryInternal(
 
   console.warn('[Summarization] All providers failed');
   return null;
+}
+
+/**
+ * Generate a 3-sentence daily brief for SachNetra India mobile.
+ * Uses the 'daily-brief' mode which returns plain text (not JSON summary/meaning).
+ * Falls through the same provider chain: Ollama → Groq → OpenRouter.
+ */
+export async function generateDailyBrief(
+  headlines: string[],
+): Promise<string> {
+  if (!headlines || headlines.length < 2) return '';
+
+  for (const providerDef of API_PROVIDERS) {
+    if (!isFeatureAvailable(providerDef.featureId)) continue;
+
+    try {
+      const resp = await summaryBreaker.execute(async () => {
+        return newsClient.summarizeArticle({
+          provider: providerDef.provider,
+          headlines: headlines.slice(0, 5),
+          mode: 'daily-brief',
+          geoContext: '',
+          variant: 'india',
+          lang: 'en',
+        });
+      }, emptySummaryFallback);
+
+      if (resp.fallback || resp.status === 'SUMMARIZE_STATUS_SKIPPED') continue;
+      const text = typeof resp.summary === 'string' ? resp.summary.trim() : '';
+      if (text && text.length >= 20) return text;
+    } catch (err) {
+      console.warn(`[DailyBrief] ${providerDef.label} failed:`, err);
+    }
+  }
+
+  return '';
 }
 
 

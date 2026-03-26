@@ -11,6 +11,7 @@ import {
   buildArticlePrompts,
   getProviderCredentials,
   getCacheKey,
+  parseTwoSummaryResponse,
 } from './_shared';
 import { CHROME_UA } from '../../../_shared/constants';
 import { isProviderAvailable } from '../../../_shared/llm-health';
@@ -114,8 +115,9 @@ export async function summarizeArticle(
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt },
             ],
-            temperature: 0.3,
-            max_tokens: 100,
+            // India variant needs temperature 0 for reliable output
+            temperature: (variant === 'india' && (mode === 'brief' || mode === 'daily-brief')) ? 0 : 0.3,
+            max_tokens: mode === 'daily-brief' ? 200 : (variant === 'india' && mode === 'brief') ? 400 : 100,
             top_p: 0.9,
             ...extraBody,
           }),
@@ -166,8 +168,19 @@ export async function summarizeArticle(
 
     if (result?.summary) {
       const isCached = source === 'cache';
+
+      // For India variant brief mode: parse the two-summary JSON and re-encode
+      // so the frontend receives `{ summary, meaning }` as a JSON string in
+      // the proto's single `summary` field.
+      // daily-brief mode returns plain text — no JSON encoding needed.
+      let finalSummary = result.summary;
+      if (variant === 'india' && mode === 'brief' && !isCached) {
+        const parsed = parseTwoSummaryResponse(result.summary);
+        finalSummary = JSON.stringify({ summary: parsed.summary, meaning: parsed.meaning });
+      }
+
       return {
-        summary: result.summary,
+        summary: finalSummary,
         model: result.model || model,
         provider: isCached ? 'cache' : provider,
         tokens: isCached ? 0 : (result.tokens || 0),
