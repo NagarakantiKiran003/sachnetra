@@ -10,6 +10,160 @@ import type { Feed } from '@/types';
 import { rssProxyUrl } from '@/utils';
 const rss = rssProxyUrl;
 
+// --------------------------------------------
+// Map configuration — India variant
+// --------------------------------------------
+
+// Basemap: OpenFreeMap Positron (light grey, minimal, no API key required)
+// Upgrade path: switch to 'carto' + 'dark-matter' post-launch (already in basemap.ts)
+export const MAP_CONFIG = {
+  defaultProvider: 'openfreemap' as const,
+  defaultTheme: 'positron' as const,
+  defaultMode: 'flat' as const,     // Never 3D globe on mobile
+  mobileOptimized: true,
+};
+
+// Kashmir-compliant boundary overlay — MUST always load for india variant
+// Source: https://github.com/datameet/maps (Survey of India official boundary, ODbL license)
+// Upload target: R2 bucket at maps.sachnetra.com — deferred to infrastructure setup
+// DeckGLMap wiring: deferred to Task 006.5
+export const INDIA_BOUNDARY_OVERLAY = 'https://maps.sachnetra.com/india-states-official.geojson';
+
+// --------------------------------------------
+// State filtering — Task 007
+// --------------------------------------------
+
+/** All 36 states + UTs with display info for the state selector grid. */
+export const INDIA_STATES: ReadonlyArray<{ code: string; name: string; city: string }> = [
+  { code: 'AN', name: 'Andaman & Nicobar', city: 'Port Blair' },
+  { code: 'AP', name: 'Andhra Pradesh', city: 'Amaravati' },
+  { code: 'AR', name: 'Arunachal Pradesh', city: 'Itanagar' },
+  { code: 'AS', name: 'Assam', city: 'Guwahati' },
+  { code: 'BR', name: 'Bihar', city: 'Patna' },
+  { code: 'CH', name: 'Chandigarh', city: 'Chandigarh' },
+  { code: 'CT', name: 'Chhattisgarh', city: 'Raipur' },
+  { code: 'DD', name: 'Daman & Diu', city: 'Daman' },
+  { code: 'DL', name: 'Delhi', city: 'New Delhi' },
+  { code: 'DN', name: 'Dadra & Nagar Haveli', city: 'Silvassa' },
+  { code: 'GA', name: 'Goa', city: 'Panaji' },
+  { code: 'GJ', name: 'Gujarat', city: 'Ahmedabad' },
+  { code: 'HP', name: 'Himachal Pradesh', city: 'Shimla' },
+  { code: 'HR', name: 'Haryana', city: 'Gurugram' },
+  { code: 'JH', name: 'Jharkhand', city: 'Ranchi' },
+  { code: 'JK', name: 'Jammu & Kashmir', city: 'Srinagar' },
+  { code: 'KA', name: 'Karnataka', city: 'Bengaluru' },
+  { code: 'KL', name: 'Kerala', city: 'Thiruvananthapuram' },
+  { code: 'LA', name: 'Ladakh', city: 'Leh' },
+  { code: 'LD', name: 'Lakshadweep', city: 'Kavaratti' },
+  { code: 'MH', name: 'Maharashtra', city: 'Mumbai' },
+  { code: 'ML', name: 'Meghalaya', city: 'Shillong' },
+  { code: 'MN', name: 'Manipur', city: 'Imphal' },
+  { code: 'MP', name: 'Madhya Pradesh', city: 'Bhopal' },
+  { code: 'MZ', name: 'Mizoram', city: 'Aizawl' },
+  { code: 'NL', name: 'Nagaland', city: 'Kohima' },
+  { code: 'OR', name: 'Odisha', city: 'Bhubaneswar' },
+  { code: 'PB', name: 'Punjab', city: 'Chandigarh' },
+  { code: 'PY', name: 'Puducherry', city: 'Puducherry' },
+  { code: 'RJ', name: 'Rajasthan', city: 'Jaipur' },
+  { code: 'SK', name: 'Sikkim', city: 'Gangtok' },
+  { code: 'TG', name: 'Telangana', city: 'Hyderabad' },
+  { code: 'TN', name: 'Tamil Nadu', city: 'Chennai' },
+  { code: 'TR', name: 'Tripura', city: 'Agartala' },
+  { code: 'UP', name: 'Uttar Pradesh', city: 'Lucknow' },
+  { code: 'UT', name: 'Uttarakhand', city: 'Dehradun' },
+  { code: 'WB', name: 'West Bengal', city: 'Kolkata' },
+];
+
+/**
+ * Keywords for matching news stories to states.
+ * Source: ai_docs/prep/04_data_sources.md L195-233
+ */
+export const INDIA_STATE_KEYWORDS: Record<string, string[]> = {
+  'AN': ['andaman', 'nicobar', 'port blair'],
+  'AP': ['andhra', 'amaravati', 'visakhapatnam', 'vijayawada', 'tirupati'],
+  'AR': ['arunachal', 'itanagar', 'tawang'],
+  'AS': ['assam', 'guwahati', 'dispur', 'brahmaputra', 'barpeta', 'silchar'],
+  'BR': ['bihar', 'patna', 'gaya', 'muzaffarpur'],
+  'CH': ['chandigarh'],
+  'CT': ['chhattisgarh', 'raipur', 'bilaspur', 'bastar', 'naxal'],
+  'DD': ['daman', 'diu'],
+  'DL': ['delhi', 'new delhi', 'ncr', 'lutyen', 'parliament', 'rashtrapati'],
+  'DN': ['dadra', 'nagar haveli'],
+  'GA': ['goa', 'panaji', 'margao'],
+  'GJ': ['gujarat', 'ahmedabad', 'surat', 'vadodara', 'gandhinagar', 'kutch'],
+  'HP': ['himachal', 'shimla', 'manali', 'dharamsala'],
+  'HR': ['haryana', 'chandigarh', 'gurugram', 'faridabad', 'ambala'],
+  'JH': ['jharkhand', 'ranchi', 'jamshedpur', 'dhanbad'],
+  'JK': ['kashmir', 'jammu', 'srinagar', 'leh', 'ladakh', 'loc', 'pulwama', 'afspa'],
+  'KA': ['karnataka', 'bengaluru', 'bangalore', 'mysuru', 'hubli'],
+  'KL': ['kerala', 'thiruvananthapuram', 'kochi', 'kozhikode', 'wayanad'],
+  'LA': ['ladakh', 'leh', 'kargil', 'lac', 'galwan'],
+  'LD': ['lakshadweep'],
+  'MH': ['maharashtra', 'mumbai', 'pune', 'nagpur', 'nashik', 'thane', 'aurangabad'],
+  'ML': ['meghalaya', 'shillong'],
+  'MN': ['manipur', 'imphal', 'meitei', 'kuki', 'ethnic violence'],
+  'MP': ['madhya pradesh', 'bhopal', 'indore', 'gwalior', 'jabalpur'],
+  'MZ': ['mizoram', 'aizawl'],
+  'NL': ['nagaland', 'kohima', 'dimapur'],
+  'OR': ['odisha', 'bhubaneswar', 'cuttack', 'puri', 'cyclone odisha'],
+  'PB': ['punjab', 'amritsar', 'ludhiana', 'chandigarh', 'farmer'],
+  'PY': ['puducherry', 'pondicherry'],
+  'RJ': ['rajasthan', 'jaipur', 'jodhpur', 'udaipur', 'kota'],
+  'SK': ['sikkim', 'gangtok'],
+  'TG': ['telangana', 'hyderabad', 'warangal', 'nizamabad'],
+  'TN': ['tamil nadu', 'chennai', 'madurai', 'coimbatore', 'trichy', 'salem'],
+  'TR': ['tripura', 'agartala'],
+  'UP': ['uttar pradesh', 'lucknow', 'noida', 'agra', 'varanasi', 'kanpur', 'prayagraj', 'ayodhya'],
+  'UT': ['uttarakhand', 'dehradun', 'haridwar', 'rishikesh', 'nainital'],
+  'WB': ['west bengal', 'kolkata', 'calcutta', 'siliguri', 'darjeeling', 'howrah'],
+};
+
+/**
+ * Maps kebab-case data-state attribute values (from panel-layout.ts grid cells)
+ * to 2-letter state codes used by INDIA_STATE_KEYWORDS.
+ * 'all' maps to empty string (= no filter / All India).
+ */
+export const STATE_SLUG_TO_CODE: Record<string, string> = {
+  'all': '',
+  'andaman-nicobar': 'AN',
+  'andhra-pradesh': 'AP',
+  'arunachal-pradesh': 'AR',
+  'assam': 'AS',
+  'bihar': 'BR',
+  'chandigarh': 'CH',
+  'chhattisgarh': 'CT',
+  'daman-diu': 'DD',
+  'delhi': 'DL',
+  'dadra-nagar-haveli': 'DN',
+  'goa': 'GA',
+  'gujarat': 'GJ',
+  'himachal-pradesh': 'HP',
+  'haryana': 'HR',
+  'jharkhand': 'JH',
+  'jammu-kashmir': 'JK',
+  'karnataka': 'KA',
+  'kerala': 'KL',
+  'ladakh': 'LA',
+  'lakshadweep': 'LD',
+  'maharashtra': 'MH',
+  'meghalaya': 'ML',
+  'manipur': 'MN',
+  'madhya-pradesh': 'MP',
+  'mizoram': 'MZ',
+  'nagaland': 'NL',
+  'odisha': 'OR',
+  'punjab': 'PB',
+  'puducherry': 'PY',
+  'rajasthan': 'RJ',
+  'sikkim': 'SK',
+  'telangana': 'TG',
+  'tamil-nadu': 'TN',
+  'tripura': 'TR',
+  'uttar-pradesh': 'UP',
+  'uttarakhand': 'UT',
+  'west-bengal': 'WB',
+};
+
 export const FEEDS: Record<string, Feed[]> = {
   // Tier 1 — Wire Services & Major Broadcasters
   politics: [

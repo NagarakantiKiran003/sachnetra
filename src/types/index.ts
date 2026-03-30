@@ -632,6 +632,8 @@ export interface MapLayers {
   processingPlants: boolean;
   commodityPorts: boolean;
   webcams: boolean;
+  // India variant layers
+  indiaStates?: boolean;
 }
 
 export interface AIDataCenter {

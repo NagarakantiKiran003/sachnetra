@@ -369,3 +369,27 @@ export async function fetchCategoryFeeds(
 
   return ensureSortedDescending();
 }
+
+/**
+ * Filter news items by Indian state keywords.
+ * Returns all items if stateCode is null/empty (All India).
+ * Used by India variant state selector (Task 007).
+ */
+export function filterNewsByState(
+  items: NewsItem[],
+  stateCode: string | null,
+  keywords: Record<string, string[]>
+): NewsItem[] {
+  if (!stateCode) return items;
+
+  const stateKeywords = keywords[stateCode] || [];
+  if (stateKeywords.length === 0) return items;
+
+  return items.filter(item =>
+    stateKeywords.some(kw =>
+      item.title.toLowerCase().includes(kw) ||
+      (item.locationName && item.locationName.toLowerCase().includes(kw))
+    )
+  );
+}
+

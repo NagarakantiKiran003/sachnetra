@@ -84,11 +84,13 @@ export const MAP_THEME_OPTIONS: Record<MapProvider, { value: string; label: stri
   ],
 };
 
+const isIndiaVariant = import.meta.env.VITE_VARIANT === 'india';
+
 const DEFAULT_THEME: Record<MapProvider, string> = {
   pmtiles: 'black',
   auto: 'black',
-  openfreemap: 'dark',
-  carto: 'dark-matter',
+  openfreemap: isIndiaVariant ? 'positron' : 'dark',
+  carto: isIndiaVariant ? 'positron' : 'dark-matter',
 };
 
 export function getMapProvider(): MapProvider {

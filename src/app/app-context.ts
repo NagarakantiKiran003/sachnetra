@@ -78,6 +78,7 @@ export interface AppContext {
   resolvedLocation: 'global' | 'america' | 'mena' | 'eu' | 'asia' | 'latam' | 'africa' | 'oceania';
 
   initialUrlState: import('@/utils').ParsedMapUrlState | null;
+  selectedState: string | null;  // India variant: 2-letter state code for feed filtering (Task 007)
   readonly PANEL_ORDER_KEY: string;
   readonly PANEL_SPANS_KEY: string;
 }

@@ -19409,8 +19409,28 @@ body.has-breaking-alert .panels-grid {
   [data-variant="india"] .sn-map-tab,
   [data-variant="india"] .sn-timeline-tab,
   [data-variant="india"] .sn-states-tab {
-    padding: 20px 16px;
+    padding: 0;
     min-height: 60vh;
+  }
+
+  /* When .map-section is moved inside .sn-map-tab by JS (lazy-load on Map tab tap),
+     override the desktop "display: none !important" so the map actually renders.
+     Also set proper sizing so DeckGL has non-zero canvas dimensions. */
+  [data-variant="india"] .sn-map-tab .map-section {
+    display: flex !important;
+    flex-direction: column;
+    height: calc(100vh - 130px); /* viewport minus header + bottom nav */
+    min-height: 400px;
+    border: none;
+  }
+
+  [data-variant="india"] .sn-map-tab .map-section .panel-header {
+    display: none; /* Hide the map panel header — we have the bottom nav */
+  }
+
+  [data-variant="india"] .sn-map-tab .map-section .map-resize-handle,
+  [data-variant="india"] .sn-map-tab .map-section .map-bottom-grid {
+    display: none !important;
   }
 
   [data-variant="india"] .sn-map-placeholder {

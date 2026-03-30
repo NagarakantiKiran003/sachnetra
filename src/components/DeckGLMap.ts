@@ -4250,15 +4250,19 @@ export class DeckGLMap {
       }
       this.stopPulseAnimation();
       this.stopDayNightTimer();
+      // Clear DeckGL layers so MapLibre's render loop won't draw stale/null layers
+      try { this.deckOverlay?.setProps({ layers: [] }); } catch { /* ignore */ }
+      // Stop MapLibre's render loop to prevent repaint while hidden
+      this.maplibreMap?.stop();
       return;
     }
 
     this.syncPulseAnimation();
     if (this.state.layers.dayNight) this.startDayNightTimer();
-    if (!paused && this.renderPending) {
-      this.renderPending = false;
-      this.render();
-    }
+    // Rebuild layers and trigger repaint on resume
+    if (this.renderPending) this.renderPending = false;
+    this.render();
+    this.maplibreMap?.triggerRepaint();
   }
 
   private updateLayers(): void {
@@ -4392,7 +4396,12 @@ export class DeckGLMap {
   }
 
   private resetView(): void {
-    this.setView('global');
+    if (import.meta.env.VITE_VARIANT === 'india') {
+      // India variant: reset to India-centered view instead of global
+      this.maplibreMap?.flyTo({ center: [78.9629, 20.5937], zoom: 4, duration: 1000 });
+    } else {
+      this.setView('global');
+    }
   }
 
   private createUcdpEventsLayer(events: UcdpGeoEvent[]): ScatterplotLayer<UcdpGeoEvent> {

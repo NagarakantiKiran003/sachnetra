@@ -3,7 +3,7 @@ import type { MapLayers } from '@/types';
 import { isDesktopRuntime } from '@/services/runtime';
 
 export type MapRenderer = 'flat' | 'globe';
-export type MapVariant = 'full' | 'tech' | 'finance' | 'happy' | 'commodity';
+export type MapVariant = 'full' | 'tech' | 'finance' | 'happy' | 'commodity' | 'india';
 
 const _desktop = isDesktopRuntime();
 
@@ -78,6 +78,7 @@ export const LAYER_REGISTRY: Record<keyof MapLayers, LayerDefinition> = {
   processingPlants:         def('processingPlants',         '&#127981;', 'processingPlants',         'Processing Plants'),
   commodityPorts:           def('commodityPorts',           '&#9973;',   'commodityPorts',           'Commodity Ports'),
   webcams:                  def('webcams',                  '&#128247;', 'webcams',                  'Live Webcams'),
+  indiaStates:              def('indiaStates',              '&#127470;&#127475;', 'indiaStates',              'India States', ['flat']),
 };
 
 const VARIANT_LAYER_ORDER: Record<MapVariant, Array<keyof MapLayers>> = {
@@ -111,6 +112,9 @@ const VARIANT_LAYER_ORDER: Record<MapVariant, Array<keyof MapLayers>> = {
     'minerals', 'pipelines', 'waterways', 'tradeRoutes',
     'ais', 'economic', 'fires', 'climate',
     'natural', 'weather', 'outages', 'dayNight',
+  ],
+  india: [
+    'indiaStates', 'natural', 'weather', 'fires', 'outages', 'protests',
   ],
 };
 

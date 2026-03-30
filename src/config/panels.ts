@@ -866,6 +866,8 @@ const INDIA_MAP_LAYERS: MapLayers = {
   processingPlants: false,
   commodityPorts: false,
   webcams: false,
+  // India variant layer — disabled until GeoJSON overlay renderer is implemented
+  indiaStates: false,
 };
 
 const INDIA_MOBILE_MAP_LAYERS: MapLayers = {
@@ -919,6 +921,8 @@ const INDIA_MOBILE_MAP_LAYERS: MapLayers = {
   processingPlants: false,
   commodityPorts: false,
   webcams: false,
+  // India variant layer — off on mobile (keep initial load minimal)
+  indiaStates: false,
 };
 
 // ============================================

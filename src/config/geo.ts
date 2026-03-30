@@ -3261,3 +3261,27 @@ export const CRITICAL_MINERALS: CriticalMineralProject[] = [
   { id: 'wedabay', name: 'Weda Bay', lat: 0.47, lon: 127.94, mineral: 'Nickel', country: 'Indonesia', operator: 'Tsingshan/Eramet', status: 'producing', significance: 'Massive nickel pig iron production' },
   { id: 'norilsk', name: 'Norilsk', lat: 69.33, lon: 88.21, mineral: 'Nickel', country: 'Russia', operator: 'Nornickel', status: 'producing', significance: 'Major palladium/nickel source' },
 ];
+
+// ============================================
+// INDIA VARIANT — Map Views
+// ============================================
+
+// Default view when Map tab opens in India variant
+// Not yet wired to DeckGLMap (deferred to Task 006.5)
+export const INDIA_MAP_VIEW = {
+  name: 'india',
+  center: [78.9629, 20.5937] as [number, number], // Geographic center of India
+  zoom: 4,                                          // Shows full India comfortably on mobile
+  bearing: 0,
+  pitch: 0,                                         // Flat map — no tilt on mobile
+};
+
+// Regional presets for future state-level navigation
+export const INDIA_REGIONAL_VIEWS = {
+  north:     { center: [77.1025, 28.7041] as [number, number], zoom: 5 }, // Delhi area
+  south:     { center: [80.2707, 13.0827] as [number, number], zoom: 5 }, // Chennai area
+  east:      { center: [88.3639, 22.5726] as [number, number], zoom: 5 }, // Kolkata area
+  west:      { center: [72.8777, 19.0760] as [number, number], zoom: 5 }, // Mumbai area
+  northeast: { center: [92.9376, 26.2006] as [number, number], zoom: 5 }, // Guwahati area
+  central:   { center: [77.4126, 23.2599] as [number, number], zoom: 5 }, // Bhopal area
+};

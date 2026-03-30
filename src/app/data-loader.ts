@@ -150,6 +150,8 @@ import {
 import { fetchCachedRiskScores } from '@/services/cached-risk-scores';
 import { generateSummary, generateDailyBrief } from '@/services/summarization';
 import { escapeHtml } from '@/utils/sanitize';
+import { filterNewsByState } from '@/services/rss';
+import { INDIA_STATE_KEYWORDS } from '@/config/variants/india';
 import type { ThreatLevel as ClientThreatLevel } from '@/types';
 import type { NewsItem as ProtoNewsItem, ThreatLevel as ProtoThreatLevel } from '@/generated/client/worldmonitor/news/v1/service_client';
 
@@ -1264,77 +1266,28 @@ export class DataLoaderManager implements AppModule {
    * Brief card: 3-sentence plain text overview of the whole day.
    * Story cards: tappable cards that open story detail overlay.
    */
+  /**
+   * Re-render India story cards using the current state filter.
+   * Called by panel-layout when user changes the state selector.
+   * Does NOT re-generate the AI daily brief — only re-filters the card list.
+   */
+  refilterIndiaStories(): void {
+    if (SITE_VARIANT !== 'india') return;
+    const allNews = this.ctx.allNews;
+    if (allNews.length === 0) return;
+    const cardsEl = document.getElementById('snCards');
+    if (!cardsEl) return;
+    this.renderIndiaStoryCards(cardsEl, allNews);
+  }
+
   private async populateIndiaBrief(allNews: NewsItem[]): Promise<void> {
     const briefEl = document.getElementById('snBriefText');
     const cardsEl = document.getElementById('snCards');
     if (!briefEl && !cardsEl) return;
 
-    // --- Populate story cards ---
+    // --- Populate story cards (filtered by selected state) ---
     if (cardsEl && allNews.length > 0) {
-      const sorted = [...allNews]
-        .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
-        .slice(0, 20);
-
-      cardsEl.innerHTML = sorted.map((item, idx) => {
-        const ago = this.timeAgo(item.pubDate);
-        const category = item.threat?.category ?? 'General';
-        const location = item.locationName ?? '';
-
-        return `
-          <div class="sn-story-card" data-story-idx="${idx}" role="button" tabindex="0">
-            <div class="sn-story-card-body">
-              <div class="sn-story-content">
-                <div class="sn-story-badges">
-                  <span class="sn-story-badge">${escapeHtml(category)}</span>
-                  <span class="sn-story-sources">${escapeHtml(item.source)}</span>
-                </div>
-                <p class="sn-story-title">${escapeHtml(item.title)}</p>
-              </div>
-              <div class="sn-story-thumb" aria-hidden="true"></div>
-            </div>
-            <div class="sn-story-footer">
-              <span class="sn-story-meta">${ago}${location ? ' · ' + escapeHtml(location) : ''}</span>
-              <div class="sn-story-actions">
-                <button class="sn-story-action" aria-label="View story" data-story-idx="${idx}">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7C2 7 4 3 7 3C10 3 12 7 12 7C12 7 10 11 7 11C4 11 2 7 2 7Z" stroke="currentColor" stroke-width="1" fill="none"/><circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1"/></svg>
-                </button>
-                <button class="sn-story-action sn-story-share" aria-label="Share" data-story-idx="${idx}">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 1L13 3L5 11L1 13L3 9L11 1Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      // Attach tap handlers
-      cardsEl.querySelectorAll<HTMLElement>('.sn-story-card').forEach(card => {
-        card.addEventListener('click', (e) => {
-          // Don't open detail if share button was tapped
-          if ((e.target as HTMLElement).closest('.sn-story-share')) return;
-          const idx = parseInt(card.dataset.storyIdx ?? '0', 10);
-          const item = sorted[idx];
-          if (item) openStoryDetail(item);
-        });
-        card.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            const idx = parseInt(card.dataset.storyIdx ?? '0', 10);
-            const item = sorted[idx];
-            if (item) openStoryDetail(item);
-          }
-        });
-      });
-
-      // Attach share handlers
-      cardsEl.querySelectorAll<HTMLElement>('.sn-story-share').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const idx = parseInt(btn.dataset.storyIdx ?? '0', 10);
-          const item = sorted[idx];
-          if (item) shareToWhatsApp(item.title);
-        });
-      });
+      this.renderIndiaStoryCards(cardsEl, allNews);
     }
 
     // --- Populate Today's Brief via daily overview AI summary ---
@@ -1361,6 +1314,83 @@ export class DataLoaderManager implements AppModule {
       console.warn('[IndiaBrief] Failed to generate daily brief:', error);
       briefEl.textContent = 'Brief unavailable.';
     }
+  }
+
+  /**
+   * Render filtered story cards into the given container.
+   * Extracted from populateIndiaBrief so it can be called independently
+   * when the state selector changes (without re-generating the AI brief).
+   */
+  private renderIndiaStoryCards(cardsEl: HTMLElement, allNews: NewsItem[]): void {
+    const filtered = filterNewsByState(allNews, this.ctx.selectedState, INDIA_STATE_KEYWORDS);
+    const sorted = [...filtered]
+      .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
+      .slice(0, 20);
+
+    if (sorted.length === 0) {
+      cardsEl.innerHTML = '<div class="sn-empty">No stories found for this state.</div>';
+      return;
+    }
+
+    cardsEl.innerHTML = sorted.map((item, idx) => {
+      const ago = this.timeAgo(item.pubDate);
+      const category = item.threat?.category ?? 'General';
+      const location = item.locationName ?? '';
+
+      return `
+        <div class="sn-story-card" data-story-idx="${idx}" role="button" tabindex="0">
+          <div class="sn-story-card-body">
+            <div class="sn-story-content">
+              <div class="sn-story-badges">
+                <span class="sn-story-badge">${escapeHtml(category)}</span>
+                <span class="sn-story-sources">${escapeHtml(item.source)}</span>
+              </div>
+              <p class="sn-story-title">${escapeHtml(item.title)}</p>
+            </div>
+            <div class="sn-story-thumb" aria-hidden="true"></div>
+          </div>
+          <div class="sn-story-footer">
+            <span class="sn-story-meta">${ago}${location ? ' · ' + escapeHtml(location) : ''}</span>
+            <div class="sn-story-actions">
+              <button class="sn-story-action" aria-label="View story" data-story-idx="${idx}">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7C2 7 4 3 7 3C10 3 12 7 12 7C12 7 10 11 7 11C4 11 2 7 2 7Z" stroke="currentColor" stroke-width="1" fill="none"/><circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1"/></svg>
+              </button>
+              <button class="sn-story-action sn-story-share" aria-label="Share" data-story-idx="${idx}">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 1L13 3L5 11L1 13L3 9L11 1Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach tap handlers
+    cardsEl.querySelectorAll<HTMLElement>('.sn-story-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).closest('.sn-story-share')) return;
+        const idx = parseInt(card.dataset.storyIdx ?? '0', 10);
+        const item = sorted[idx];
+        if (item) openStoryDetail(item);
+      });
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const idx = parseInt(card.dataset.storyIdx ?? '0', 10);
+          const item = sorted[idx];
+          if (item) openStoryDetail(item);
+        }
+      });
+    });
+
+    // Attach share handlers
+    cardsEl.querySelectorAll<HTMLElement>('.sn-story-share').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = parseInt(btn.dataset.storyIdx ?? '0', 10);
+        const item = sorted[idx];
+        if (item) shareToWhatsApp(item.title);
+      });
+    });
   }
 
   private timeAgo(date: string | Date): string {

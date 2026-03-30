@@ -58,6 +58,7 @@ import { t } from '@/services/i18n';
 import { getCurrentTheme } from '@/utils';
 import { trackCriticalBannerAction } from '@/services/analytics';
 import { getSecretState } from '@/services/runtime-config';
+import { STATE_SLUG_TO_CODE } from '@/config/variants/india';
 
 export interface PanelLayoutCallbacks {
   openCountryStory: (code: string, name: string) => void;
@@ -65,6 +66,7 @@ export interface PanelLayoutCallbacks {
   loadAllData: () => Promise<void>;
   updateMonitorResults: () => void;
   loadSecurityAdvisories?: () => Promise<void>;
+  refilterIndiaStories?: () => void;
 }
 
 /** Returns a human-readable time-of-day label for the news feed time divider. */
@@ -551,17 +553,56 @@ export class PanelLayoutManager implements AppModule {
         el.style.display = key === tabKey ? 'block' : 'none';
       }
 
-      // Lazy-load map only on first tap
-      // NOTE: Full map integration is Task 6. For now, keep placeholder visible.
+      // Lazy-load map on first tap — Task 006 wiring
       if (tabKey === 'map' && !mapInitialized) {
         mapInitialized = true;
-        // When map integration is ready (Task 6), uncomment:
-        // const mapSection = document.getElementById('mapSection');
-        // if (mapSection) {
-        //   mapSection.style.display = '';
-        //   window.dispatchEvent(new Event('resize'));
-        // }
-        // document.querySelector('.sn-map-placeholder')?.remove();
+        const mapSection = document.getElementById('mapSection');
+        const mapTab = document.getElementById('snMapTab');
+        if (mapSection && mapTab) {
+          // Move the real map section into the Map tab container
+          mapTab.appendChild(mapSection);
+          mapSection.style.display = '';
+          // Remove the placeholder text
+          mapTab.querySelector('.sn-map-placeholder')?.remove();
+
+          // Create MapContainer AFTER layout paint so the container has real dimensions.
+          // Double-rAF: first rAF commits DOM change, second rAF runs after paint.
+          if (!this.ctx.map) {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                const mapContainer = document.getElementById('mapContainer') as HTMLElement;
+                if (mapContainer && !this.ctx.map) {
+                  this.ctx.map = new MapContainer(mapContainer, {
+                    zoom: 4,
+                    pan: { x: 0, y: 0 },
+                    view: 'global',
+                    layers: this.ctx.mapLayers,
+                    timeRange: '7d',
+                  }, false); // flat mode, never globe on India mobile
+                  this.ctx.map.initEscalationGetters();
+                  this.ctx.currentTimeRange = this.ctx.map.getTimeRange();
+                  // Fire resize so DeckGL picks up correct canvas dimensions
+                  window.dispatchEvent(new Event('resize'));
+                  // Center on India after map finishes initial load
+                  setTimeout(() => { this.ctx.map?.setCenter(20.5937, 78.9629, 4); }, 500);
+                }
+              });
+            });
+          } else {
+            // Map was already created (shouldn't happen), just resize
+            requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+          }
+        }
+      }
+
+      // Pause/resume DeckGL rendering on tab switch to prevent null-layer crashes
+      if (this.ctx.map && mapInitialized) {
+        if (tabKey === 'map') {
+          this.ctx.map.setRenderPaused(false);
+          requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+        } else {
+          this.ctx.map.setRenderPaused(true);
+        }
       }
     };
 
@@ -601,14 +642,43 @@ export class PanelLayoutManager implements AppModule {
       closeStateGrid();
     });
 
-    // State cell selection
+    // State cell selection + filtering (Task 007)
     const cells = document.querySelectorAll<HTMLElement>('.sn-state-cell');
+
+    // Restore persisted state on init
+    const savedSlug = localStorage.getItem('sn-selected-state');
+    if (savedSlug && savedSlug !== 'all') {
+      const code = STATE_SLUG_TO_CODE[savedSlug] || '';
+      this.ctx.selectedState = code || null;
+      // Update visual: highlight the right cell, update bar label
+      cells.forEach((c) => {
+        const isMatch = c.dataset.state === savedSlug;
+        c.classList.toggle('sn-state-cell--active', isMatch);
+        if (isMatch && stateName) {
+          stateName.textContent = c.firstChild?.textContent?.trim() ?? 'All India';
+        }
+      });
+    }
+
     cells.forEach((cell) => {
       cell.addEventListener('click', (e) => {
         e.stopPropagation();
         cells.forEach((c) => c.classList.remove('sn-state-cell--active'));
         cell.classList.add('sn-state-cell--active');
-        if (stateName) stateName.textContent = cell.dataset.state === 'all' ? 'All India' : cell.firstChild?.textContent?.trim() ?? 'All India';
+
+        const slug = cell.dataset.state ?? 'all';
+        const code = STATE_SLUG_TO_CODE[slug] || '';
+
+        // Update bar label
+        if (stateName) stateName.textContent = slug === 'all' ? 'All India' : cell.firstChild?.textContent?.trim() ?? 'All India';
+
+        // Set context + persist
+        this.ctx.selectedState = code || null;
+        localStorage.setItem('sn-selected-state', slug);
+
+        // Re-filter the story feed
+        this.callbacks.refilterIndiaStories?.();
+
         closeStateGrid();
       });
     });
@@ -725,18 +795,27 @@ export class PanelLayoutManager implements AppModule {
   private createPanels(): void {
     const panelsGrid = document.getElementById('panelsGrid')!;
 
-    const mapContainer = document.getElementById('mapContainer') as HTMLElement;
-    const preferGlobe = loadFromStorage<string>(STORAGE_KEYS.mapMode, 'flat') === 'globe';
-    this.ctx.map = new MapContainer(mapContainer, {
-      zoom: this.ctx.isMobile ? 2.5 : 1.0,
-      pan: { x: 0, y: 0 },
-      view: this.ctx.isMobile ? this.ctx.resolvedLocation : 'global',
-      layers: this.ctx.mapLayers,
-      timeRange: '7d',
-    }, preferGlobe);
+    // For India mobile: defer map creation until Map tab is tapped (lazy load)
+    // The map is heavy (DeckGL + MapLibre) and India mobile is feed-first.
+    const isIndiaMobile = SITE_VARIANT === 'india' && this.ctx.isMobile;
+    if (!isIndiaMobile) {
+      const mapContainer = document.getElementById('mapContainer') as HTMLElement;
+      const preferGlobe = loadFromStorage<string>(STORAGE_KEYS.mapMode, 'flat') === 'globe';
+      this.ctx.map = new MapContainer(mapContainer, {
+        zoom: this.ctx.isMobile ? 2.5 : 1.0,
+        pan: { x: 0, y: 0 },
+        view: this.ctx.isMobile ? this.ctx.resolvedLocation : 'global',
+        layers: this.ctx.mapLayers,
+        timeRange: '7d',
+      }, preferGlobe);
 
-    this.ctx.map.initEscalationGetters();
-    this.ctx.currentTimeRange = this.ctx.map.getTimeRange();
+      this.ctx.map.initEscalationGetters();
+      this.ctx.currentTimeRange = this.ctx.map.getTimeRange();
+    } else {
+      // Hide mapSection on load for India mobile — will be shown lazily on Map tab tap
+      const mapSection = document.getElementById('mapSection');
+      if (mapSection) mapSection.style.display = 'none';
+    }
 
     this.createNewsPanel('politics', 'panels.politics');
     this.createNewsPanel('tech', 'panels.tech');
@@ -1193,7 +1272,7 @@ export class PanelLayoutManager implements AppModule {
 
     window.addEventListener('resize', () => this.ensureCorrectZones());
 
-    this.ctx.map.onTimeRangeChanged((range) => {
+    this.ctx.map?.onTimeRangeChanged((range) => {
       this.ctx.currentTimeRange = range;
       this.applyTimeRangeFilterDebounced();
     });

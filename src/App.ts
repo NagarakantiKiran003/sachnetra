@@ -438,6 +438,7 @@ export class App {
       initialLoadComplete: false,
       resolvedLocation: 'global',
       initialUrlState,
+      selectedState: null,
       PANEL_ORDER_KEY,
       PANEL_SPANS_KEY,
     };
@@ -465,6 +466,7 @@ export class App {
       loadAllData: () => this.dataLoader.loadAllData(),
       updateMonitorResults: () => this.dataLoader.updateMonitorResults(),
       loadSecurityAdvisories: () => this.dataLoader.loadSecurityAdvisories(),
+      refilterIndiaStories: () => this.dataLoader.refilterIndiaStories(),
     });
 
     this.eventHandlers = new EventHandlerManager(this.state, {
