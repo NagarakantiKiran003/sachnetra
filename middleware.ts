@@ -15,6 +15,7 @@ const VARIANT_HOST_MAP: Record<string, string> = {
   'tech.worldmonitor.app': 'tech',
   'finance.worldmonitor.app': 'finance',
   'happy.worldmonitor.app': 'happy',
+  'sachnetra.com': 'india',
 };
 
 // Source of truth: src/config/variant-meta.ts — keep in sync when variant metadata changes.
@@ -37,10 +38,17 @@ const VARIANT_OG: Record<string, { title: string; description: string; image: st
     image: 'https://happy.worldmonitor.app/favico/happy/og-image.png',
     url: 'https://happy.worldmonitor.app/',
   },
+  india: {
+    title: 'SachNetra — See India Clearly',
+    description: 'Calm, clear Indian news intelligence. AI-powered summaries from 20+ sources. No panic, no noise — just what happened and what it means.',
+    image: 'https://sachnetra.com/sachnetra-favicon.svg',
+    url: 'https://sachnetra.com/',
+  },
 };
 
 const ALLOWED_HOSTS = new Set([
   'worldmonitor.app',
+  'sachnetra.com',
   ...Object.keys(VARIANT_HOST_MAP),
 ]);
 const VERCEL_PREVIEW_RE = /^[a-z0-9-]+-[a-z0-9]{8,}\.vercel\.app$/;
