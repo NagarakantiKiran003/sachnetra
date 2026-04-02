@@ -40,4 +40,4 @@ git diff --name-only "$VERCEL_GIT_PREVIOUS_SHA" HEAD -- \
   | grep -q . && exit 1
 
 # Nothing web-relevant changed, skip the build
-exit 1
+exit 0
